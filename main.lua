@@ -14,26 +14,29 @@ local MAP_SPRITE
 local HEIGHT = love.graphics.getHeight()
 local WIDTH = love.graphics.getWidth()
 
+local gamepad = nil
+
 -- Find which direction keys are pressed: return a set of booleans
 local function getDirectionKeys()
+
     local right = false
     local left = false
     local up = false
     local down = false
 
-    if love.keyboard.isDown('right')
+    if gamepad:isGamepadDown('dpright')
     then right = true
     end
 
-    if love.keyboard.isDown('left')
+    if gamepad:isGamepadDown('dpleft')
     then left = true
     end
 
-    if love.keyboard.isDown('up')
+    if gamepad:isGamepadDown('a')
     then up = true
     end
 
-    if love.keyboard.isDown('down')
+    if gamepad:isGamepadDown('b')
     then down = true
     end
 
@@ -43,12 +46,13 @@ end
 function love.load()
 	PLAYER_SPRITE = love.graphics.newImage("assets/triangle.png")
   MAP_SPRITE = love.graphics.newImage("assets/arena.jpg")
+  gamepad = love.joystick.getJoysticks()[1]
 end
 
 function love.update(dt)
 
 	-- end the game
-	if love.keyboard.isDown('escape')
+	if gamepad:isGamepadDown('back')
 		then love.event.quit()
 	end
 
@@ -62,11 +66,12 @@ function love.update(dt)
 		then accelerationFactor = -1 * PLAYER_BREAK
 	end
 
-	if right
-		then rotationFactor = 1
-		elseif left
-			then rotationFactor = -1
-		end
+	-- if right
+	-- 	then rotationFactor = 1
+	-- 	elseif left
+	-- 		then rotationFactor = -1
+	-- 	end
+  rotationFactor = gamepad:getGamepadAxis("leftx")
 
 -- find the norm of the speed
 -- speed norm bounded between 0 and PLAYER_MAX_SPEED
@@ -84,8 +89,6 @@ function love.update(dt)
 	elseif newSpeedNorm < 0
 		then newSpeedNorm = 0
 	end
-
-
 
 	-- find the speed, potentially rotated
 	-- for floating point values
