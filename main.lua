@@ -1,20 +1,18 @@
 local geometryLib = require "geometryLib"
 local map = require "map"
+local colors = require "color"
 
 globalDebugFlag = true
 
 local HEIGHT = love.graphics.getHeight()
 local WIDTH = love.graphics.getWidth()
 
-local PLAYER_SPRITE
 local player = {x = WIDTH / 16, y = HEIGHT / 2, theta = - math.pi / 2, vx = 0, vy = 0}
 local PLAYER_ACCELERATION = 800 -- Px sec-2
 local PLAYER_BREAK = 800
 local PLAYER_MAX_SPEED = 350 -- Px sec-1
 local PLAYER_FRICTION = -3 -- Px sec-1
 local PLAYER_ROTATION_SPEED = 3 -- rad sec-1
-
-
 
 local gamepad = nil
 local thumbstickSensitivity = 0.15 -- thumbstick considered at rest if value in [-thumbstickSensitivity thumbstickSensitivity]
@@ -47,7 +45,6 @@ local function getDirectionKeys()
 end
 
 function love.load()
-	PLAYER_SPRITE = love.graphics.newImage("assets/triangle.png")
   gamepad = love.joystick.getJoysticks()[1]
 end
 
@@ -132,13 +129,19 @@ end
 
 function love.draw()
   -- draw player
-  love.graphics.setColor(255, 255, 255)
-  love.graphics.draw(PLAYER_SPRITE, player.x, player.y, player.theta, 0.2, 0.2, PLAYER_SPRITE:getWidth() / 2, PLAYER_SPRITE:getHeight() / 2)
+  love.graphics.setColor(colors.ORANGE())
+
+  -- line for the player in Px
+  -- be careful player.x, player.y should be the center of gravity
+  local ax, ay = geometryLib.localToGlobalPoint(0, 20, player.x, player.y, player.theta)
+  local bx, by = geometryLib.localToGlobalPoint(10, -10, player.x, player.y, player.theta)
+  local cx, cy = geometryLib.localToGlobalPoint(-10, -10, player.x, player.y, player.theta)
+  love.graphics.line(ax, ay, bx, by, cx, cy, ax, ay)
 
   --draw map
   map.drawMap()
 
-  love.graphics.setColor(0,0,0)
+  love.graphics.setColor(colors.BLACK())
   love.graphics.print("FPS: " .. love.timer.getFPS(), 10, 10)
 
     if globalDebugFlag

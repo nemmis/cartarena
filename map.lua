@@ -1,12 +1,10 @@
-mapModule = {}
+colors = require 'color'
 
-function TURQUESE()
-  return 0, 206, 209
-end
+mapModule = {}
 
 function mapModule.drawMap()
 
-  love.graphics.setColor(TURQUESE())
+  love.graphics.setColor(colors.TURQUESE())
 
   local width = love.graphics.getWidth()
   local height = love.graphics.getHeight()

@@ -17,7 +17,7 @@ function geometryLib.translate(x, y, tx, ty)
     return x + tx, y + ty
 end
 
-local function localToGlobalPoint(xLocal, yLocal, localOriginInGlobalX, localOriginInGlobalY, rotationAngle)
+function geometryLib.localToGlobalPoint(xLocal, yLocal, localOriginInGlobalX, localOriginInGlobalY, rotationAngle)
     local x, y = geometryLib.rotate(xLocal, yLocal, rotationAngle)
     return geometryLib.translate(x, y, localOriginInGlobalX, localOriginInGlobalY)
 end
@@ -33,8 +33,8 @@ function geometryLib.normalize(x, y, newNorm)
 end
 
 function geometryLib.localToGlobalVector(dxLocal, dyLocal, localOriginInGlobalX, localOriginInGlobalY, rotationAngle)
-    local x0Global, y0Global = localToGlobalPoint(0, 0, localOriginInGlobalX, localOriginInGlobalY, rotationAngle)
-    local x1Global, y1Global = localToGlobalPoint(dxLocal, dyLocal, localOriginInGlobalX, localOriginInGlobalY, rotationAngle)
+    local x0Global, y0Global = geometryLib.localToGlobalPoint(0, 0, localOriginInGlobalX, localOriginInGlobalY, rotationAngle)
+    local x1Global, y1Global = geometryLib.localToGlobalPoint(dxLocal, dyLocal, localOriginInGlobalX, localOriginInGlobalY, rotationAngle)
     return getVector(x0Global, y0Global, x1Global, y1Global)
 end
 
