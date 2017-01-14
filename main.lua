@@ -1,18 +1,20 @@
 local geometryLib = require "geometryLib"
+local map = require "map"
+
 globalDebugFlag = true
 
+local HEIGHT = love.graphics.getHeight()
+local WIDTH = love.graphics.getWidth()
+
 local PLAYER_SPRITE
-local player = {x = 200, y = 200, theta = 0, vx = 0, vy = 0}
+local player = {x = WIDTH / 16, y = HEIGHT / 2, theta = - math.pi / 2, vx = 0, vy = 0}
 local PLAYER_ACCELERATION = 800 -- Px sec-2
 local PLAYER_BREAK = 800
 local PLAYER_MAX_SPEED = 350 -- Px sec-1
 local PLAYER_FRICTION = -3 -- Px sec-1
 local PLAYER_ROTATION_SPEED = 3 -- rad sec-1
 
-local MAP_SPRITE
 
-local HEIGHT = love.graphics.getHeight()
-local WIDTH = love.graphics.getWidth()
 
 local gamepad = nil
 local thumbstickSensitivity = 0.15 -- thumbstick considered at rest if value in [-thumbstickSensitivity thumbstickSensitivity]
@@ -46,14 +48,13 @@ end
 
 function love.load()
 	PLAYER_SPRITE = love.graphics.newImage("assets/triangle.png")
-  MAP_SPRITE = love.graphics.newImage("assets/arena.jpg")
   gamepad = love.joystick.getJoysticks()[1]
 end
 
 function love.update(dt)
 
-	-- end the game
-	if gamepad:isGamepadDown('back')
+	-- ends the game
+	if gamepad:isGamepadDown('back') or love.keyboard.isDown('escape')
 		then love.event.quit()
 	end
 
@@ -130,12 +131,12 @@ function love.update(dt)
 end
 
 function love.draw()
-    -- player sprite
-
-
-love.graphics.setColor(255, 255, 255)
-  love.graphics.draw(MAP_SPRITE, 0, 0)
+  -- draw player
+  love.graphics.setColor(255, 255, 255)
   love.graphics.draw(PLAYER_SPRITE, player.x, player.y, player.theta, 0.2, 0.2, PLAYER_SPRITE:getWidth() / 2, PLAYER_SPRITE:getHeight() / 2)
+
+  --draw map
+  map.drawMap()
 
   love.graphics.setColor(0,0,0)
   love.graphics.print("FPS: " .. love.timer.getFPS(), 10, 10)
@@ -159,15 +160,6 @@ love.graphics.setColor(255, 255, 255)
 				yAxisVectorGlobalDx, yAxisVectorGlobalDy = geometryLib.localToGlobalVector(0, 20, player.x, player.y, player.theta)
 				love.graphics.line(player.x, player.y, player.x + yAxisVectorGlobalDx, player.y + yAxisVectorGlobalDy)
     end
-
-    -- world
-    -- love.graphics.setColor(255, 255, 255)
-    -- love.graphics.circle("line", WIDTH / 2, HEIGHT/2, 50)
-    -- love.graphics.circle("line", WIDTH / 2, HEIGHT/2, 150)
-    -- love.graphics.circle("line", 0, 0, 200)
-    -- love.graphics.circle("line", WIDTH, HEIGHT, 400)
-    -- love.graphics.circle("line", WIDTH / 8, HEIGHT / 8, 50)
-    -- love.graphics.circle("line", WIDTH / 8, HEIGHT * 7 / 8, 50)
 end
 
 function love.keypressed( key, scancode, isrepeat )
