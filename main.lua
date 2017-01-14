@@ -5,7 +5,7 @@ local PLAYER_SPRITE
 local player = {x = 200, y = 200, theta = 0, vx = 0, vy = 0}
 local PLAYER_ACCELERATION = 800 -- Px sec-2
 local PLAYER_BREAK = 800
-local PLAYER_MAX_SPEED = 270 -- Px sec-1
+local PLAYER_MAX_SPEED = 350 -- Px sec-1
 local PLAYER_FRICTION = -3 -- Px sec-1
 local PLAYER_ROTATION_SPEED = 3 -- rad sec-1
 
@@ -15,6 +15,7 @@ local HEIGHT = love.graphics.getHeight()
 local WIDTH = love.graphics.getWidth()
 
 local gamepad = nil
+local thumbstickSensitivity = 0.15 -- thumbstick considered at rest if value in [-thumbstickSensitivity thumbstickSensitivity]
 
 -- Find which direction keys are pressed: return a set of booleans
 local function getDirectionKeys()
@@ -72,6 +73,9 @@ function love.update(dt)
 	-- 		then rotationFactor = -1
 	-- 	end
   rotationFactor = gamepad:getGamepadAxis("leftx")
+  if math.abs(rotationFactor) < thumbstickSensitivity
+  then rotationFactor = 0
+  end
 
 -- find the norm of the speed
 -- speed norm bounded between 0 and PLAYER_MAX_SPEED
