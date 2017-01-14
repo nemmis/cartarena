@@ -165,6 +165,14 @@ function love.draw()
     end
 end
 
+function love.gamepadpressed( joystick, button )
+  -- toggle debug drawing
+  if button == 'start'
+  then globalDebugFlag = not globalDebugFlag
+  end
+
+end
+
 function love.keypressed( key, scancode, isrepeat )
 	print("Key" .. key .. " has just been pressed")
 end
