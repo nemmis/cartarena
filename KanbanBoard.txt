@@ -1,7 +1,7 @@
 What provides the most value and could get feedback as early as possible ?
 
 - player movement controlled with a gamepad (joystick)
-- collisions, behaviour needs to be defined ? introduce an arena object, a set of static squares (have a look at the Towerfall ascension maps)
+- collisions, behaviour needs to be defined ? introduce an arena object, a set of static squares
 - be able to fire bullets, reflection
 - be able to shoot static targets, this is the training mode, see if rebounds add something, see if it is possible to have skilled shooting
 
@@ -10,8 +10,6 @@ What provides the most value and could get feedback as early as possible ?
 - introduce going backward
 - see trajectory of the player
 - how to make a game independent of the resolution ? (e.g TV)
-
-- should omega depend on the speed ? to turn even better at low speed and not so much at high speeds
 - introduce static and dynamic friction (so it is easy to start) (maybe a state, stopped, forward, backward is necessary)
   or change the dynamic friction model globally ?
 

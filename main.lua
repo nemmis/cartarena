@@ -1,13 +1,19 @@
+-- enable global debug mode with start
+-- press Y to drive in 3rd person model
+-- press X to drive in 1st person mode
+
 local geometryLib = require "geometryLib"
 local map = require "map"
 local colors = require "color"
+local vehicleInput = require "vehicleInput"
 
 globalDebugFlag = true
+drivingInputType = vehicleInput.TYPE_THIRD_PERSON()
 
 local HEIGHT = love.graphics.getHeight()
 local WIDTH = love.graphics.getWidth()
 
-local player = {x = WIDTH / 16, y = HEIGHT / 2, theta = - math.pi / 2, vx = 0, vy = 0}
+local player = {x = WIDTH / 16, y = HEIGHT / 2, theta = 0, vx = 0, vy = 0}
 local PLAYER_ACCELERATION = 800 -- Px sec-2
 local PLAYER_BREAK = 800
 local PLAYER_MAX_SPEED = 350 -- Px sec-1
@@ -17,32 +23,32 @@ local PLAYER_ROTATION_SPEED = 3 -- rad sec-1
 local gamepad = nil
 local thumbstickSensitivity = 0.15 -- thumbstick considered at rest if value in [-thumbstickSensitivity thumbstickSensitivity]
 
--- Find which direction keys are pressed: return a set of booleans
-local function getDirectionKeys()
-
-    local right = false
-    local left = false
-    local up = false
-    local down = false
-
-    if gamepad:isGamepadDown('dpright')
-    then right = true
-    end
-
-    if gamepad:isGamepadDown('dpleft')
-    then left = true
-    end
-
-    if gamepad:isGamepadDown('a')
-    then up = true
-    end
-
-    if gamepad:isGamepadDown('b')
-    then down = true
-    end
-
-    return right, left, up, down
-end
+-- -- Find which direction keys are pressed: return a set of booleans
+-- local function getDirectionKeys()
+--
+--     local right = false
+--     local left = false
+--     local up = false
+--     local down = false
+--
+--     if gamepad:isGamepadDown('dpright')
+--     then right = true
+--     end
+--
+--     if gamepad:isGamepadDown('dpleft')
+--     then left = true
+--     end
+--
+--     if gamepad:isGamepadDown('a')
+--     then up = true
+--     end
+--
+--     if gamepad:isGamepadDown('b')
+--     then down = true
+--     end
+--
+--     return right, left, up, down
+-- end
 
 function love.load()
   gamepad = love.joystick.getJoysticks()[1]
@@ -56,24 +62,34 @@ function love.update(dt)
 	end
 
 	-- inputs for acceleration and rotation
-	local right, left, up, down = getDirectionKeys()
+	-- local right, left, up, down = getDirectionKeys()
+
+  -- new input model
+  local up, down, rotationFactor = vehicleInput.getDriverInput(gamepad, player, drivingInputType)
+  --print("Rotation factor: " .. rotationFactor)
+
 	local accelerationFactor = 0
-	local rotationFactor = 0
-	if up
+
+	if up > 0
 		then accelerationFactor = 1 * PLAYER_ACCELERATION
-	elseif down
+	elseif down > 0
 		then accelerationFactor = -1 * PLAYER_BREAK
 	end
 
+  -- local rotationFactor = 0
 	-- if right
 	-- 	then rotationFactor = 1
 	-- 	elseif left
 	-- 		then rotationFactor = -1
 	-- 	end
-  rotationFactor = gamepad:getGamepadAxis("leftx")
-  if math.abs(rotationFactor) < thumbstickSensitivity
-  then rotationFactor = 0
-  end
+
+  -- only change for the first implementation of the controls
+  -- rotationFactor = gamepad:getGamepadAxis("leftx")
+  -- if math.abs(rotationFactor) < thumbstickSensitivity
+  -- then rotationFactor = 0
+  -- end
+
+
 
 -- find the norm of the speed
 -- speed norm bounded between 0 and PLAYER_MAX_SPEED
@@ -146,8 +162,12 @@ function love.draw()
 
     if globalDebugFlag
         then
+        -- driving mode
+        love.graphics.setColor(colors.WHITE())
+        love.graphics.print(string.format("Driving type: %s", drivingInputType), 5, 5)
+
         -- player position
-        love.graphics.setColor(0, 0, 0)
+        love.graphics.setColor(colors.WHITE())
         love.graphics.circle("line", player.x, player.y, 5)
 
         -- display speed in green
@@ -169,6 +189,14 @@ function love.gamepadpressed( joystick, button )
   -- toggle debug drawing
   if button == 'start'
   then globalDebugFlag = not globalDebugFlag
+  end
+
+  if button == 'y'
+  then drivingInputType = vehicleInput.TYPE_THIRD_PERSON()
+  end
+
+  if button == 'x'
+  then drivingInputType = vehicleInput.TYPE_FIRST_PERSON()
   end
 
 end

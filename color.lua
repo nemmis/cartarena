@@ -12,4 +12,8 @@ function colors.BLACK()
   return 0, 0, 0
 end
 
+function colors.WHITE()
+  return 255, 255, 255
+end
+
 return colors
