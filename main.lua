@@ -1,4 +1,4 @@
--- enable global debug mode with start
+-- press start to toggle global debug mode
 -- press Y to drive in 3rd person model
 -- press X to drive in 1st person mode
 
@@ -23,33 +23,6 @@ local PLAYER_ROTATION_SPEED = 3 -- rad sec-1
 local gamepad = nil
 local thumbstickSensitivity = 0.15 -- thumbstick considered at rest if value in [-thumbstickSensitivity thumbstickSensitivity]
 
--- -- Find which direction keys are pressed: return a set of booleans
--- local function getDirectionKeys()
---
---     local right = false
---     local left = false
---     local up = false
---     local down = false
---
---     if gamepad:isGamepadDown('dpright')
---     then right = true
---     end
---
---     if gamepad:isGamepadDown('dpleft')
---     then left = true
---     end
---
---     if gamepad:isGamepadDown('a')
---     then up = true
---     end
---
---     if gamepad:isGamepadDown('b')
---     then down = true
---     end
---
---     return right, left, up, down
--- end
-
 function love.load()
   gamepad = love.joystick.getJoysticks()[1]
 end
@@ -61,39 +34,19 @@ function love.update(dt)
 		then love.event.quit()
 	end
 
-	-- inputs for acceleration and rotation
-	-- local right, left, up, down = getDirectionKeys()
-
-  -- new input model
+  -- driving inputs
   local up, down, rotationFactor = vehicleInput.getDriverInput(gamepad, player, drivingInputType)
-  --print("Rotation factor: " .. rotationFactor)
 
 	local accelerationFactor = 0
-
 	if up > 0
 		then accelerationFactor = 1 * PLAYER_ACCELERATION
 	elseif down > 0
 		then accelerationFactor = -1 * PLAYER_BREAK
 	end
 
-  -- local rotationFactor = 0
-	-- if right
-	-- 	then rotationFactor = 1
-	-- 	elseif left
-	-- 		then rotationFactor = -1
-	-- 	end
-
-  -- only change for the first implementation of the controls
-  -- rotationFactor = gamepad:getGamepadAxis("leftx")
-  -- if math.abs(rotationFactor) < thumbstickSensitivity
-  -- then rotationFactor = 0
-  -- end
-
-
-
--- find the norm of the speed
--- speed norm bounded between 0 and PLAYER_MAX_SPEED
--- the speed is always in the direction of the local Y axis at the start of an update loop
+  -- find the norm of the speed
+  -- speed norm bounded between 0 and PLAYER_MAX_SPEED
+  -- the speed is always in the direction of the local Y axis at the start of an update loop
 	local x1 = player.x
 	local y1 = player.y
 	local v1x = player.vx
@@ -126,14 +79,6 @@ function love.update(dt)
 	local newPositionX = x1 + newSpeedX * dt
 	local newPositionY = y1 + newSpeedY * dt
 
-	-- if newSpeedNorm > 0
-	-- 	then
-	-- 		print(thetaDelta)
-	-- 		print(newSpeedX)
-	-- 		print(newSpeedY)
-	-- 		print(newSpeedNorm .. " " .. newPositionX .. " " .. newPositionY)
-	-- end
-
 	-- update the player
 	player.x = newPositionX
 	player.y = newPositionY
@@ -157,14 +102,14 @@ function love.draw()
   --draw map
   map.drawMap()
 
-  love.graphics.setColor(colors.BLACK())
-  love.graphics.print("FPS: " .. love.timer.getFPS(), 10, 10)
+  love.graphics.setColor(colors.WHITE())
+  love.graphics.print("FPS: " .. love.timer.getFPS(), 5, 5)
 
     if globalDebugFlag
         then
         -- driving mode
         love.graphics.setColor(colors.WHITE())
-        love.graphics.print(string.format("Driving type: %s", drivingInputType), 5, 5)
+        love.graphics.print(string.format("Driving type: %s", drivingInputType), 5, 20)
 
         -- player position
         love.graphics.setColor(colors.WHITE())
