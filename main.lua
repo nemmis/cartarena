@@ -5,7 +5,7 @@
 local map = require "map"
 local colors = require "color"
 local vehicleInput = require "vehicleInput"
-local vehicle = require "vehicle"
+local vehicle = require "vehicle/vehicle"
 
 globalDebugFlag = true
 drivingInputType = vehicleInput.TYPE_THIRD_PERSON()
