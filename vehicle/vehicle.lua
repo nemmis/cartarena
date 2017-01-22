@@ -12,9 +12,11 @@ local PLAYER_ROTATION_SPEED = 3 -- rad sec-1
 -- the prototype holds the behaviour
 local vehiclePrototype = {}
 
-function vehicleModule.new(x0, y0, theta0)
+-- debug is optional
+function vehicleModule.new(x0, y0, theta0, debugging)
+
   -- the instance holds the state
-  local vehicle = {x = x0, y = y0, theta = theta0, vx = 0, vy = 0}
+  local vehicle = {x = x0, y = y0, theta = theta0, vx = 0, vy = 0, debug = debugging or false}
 
   -- behaviour is defined in the prototype
   setmetatable(vehicle, {__index = vehiclePrototype})
@@ -92,7 +94,7 @@ function vehiclePrototype:draw()
   local cx, cy = geometryLib.localToGlobalPoint(-10, -10, self.x, self.y, self.theta)
   love.graphics.line(ax, ay, bx, by, cx, cy, ax, ay)
 
-  if globalDebugFlag
+  if self.debug
   then
     -- self position
     love.graphics.setColor(colors.WHITE())

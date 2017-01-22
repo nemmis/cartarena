@@ -37,7 +37,7 @@ function vehicleInputModule.getDriverInput(gamepad, player, type)
   local thumbstickXGlobal = gamepad:getGamepadAxis("leftx")
   local thumbstickYGlobal = gamepad:getGamepadAxis("lefty")
 
-  steeringDirection = thumbstickXGlobal -- first person view, player considered to be in the vehicle
+  local steeringDirection = thumbstickXGlobal -- first person view, player considered to be in the vehicle
   if type == INPUT_TYPE_THIRD_PERSON
   then steeringDirection = steeringThirdPerson(thumbstickXGlobal, thumbstickYGlobal, player.x, player.y, player.theta)
   end

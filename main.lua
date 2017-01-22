@@ -7,13 +7,13 @@ local colors = require "color"
 local vehicleInput = require "vehicleInput"
 local vehicle = require "vehicle/vehicle"
 
-globalDebugFlag = true
-drivingInputType = vehicleInput.TYPE_THIRD_PERSON()
+local debuggingEnabled = true
+local drivingInputType = vehicleInput.TYPE_THIRD_PERSON()
 
 local HEIGHT = love.graphics.getHeight()
 local WIDTH = love.graphics.getWidth()
 
-local vehicle = vehicle.new(WIDTH / 16, HEIGHT / 2, 0)
+local vehicle = vehicle.new(WIDTH / 16, HEIGHT / 2, 0, debuggingEnabled)
 local gamepad = nil
 
 function love.load()
@@ -43,7 +43,7 @@ function love.draw()
   map.drawMap()
   vehicle:draw()
 
-  if globalDebugFlag
+  if debuggingEnabled
       then
       -- driving mode
       love.graphics.setColor(colors.WHITE())
@@ -54,7 +54,7 @@ end
 function love.gamepadpressed( joystick, button )
   -- toggle debug drawing
   if button == 'start'
-  then globalDebugFlag = not globalDebugFlag
+  then debuggingEnabled = not debuggingEnabled
   end
 
   if button == 'y'
