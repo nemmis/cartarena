@@ -3,25 +3,58 @@ local color = require "color"
 
 local vehicleModule = {}
 
+local HEIGHT = love.graphics.getHeight()
+local WIDTH = love.graphics.getWidth()
+
+-- TODO move constants to the prototype ?
 local PLAYER_ACCELERATION = 800 -- Px sec-2
 local PLAYER_BREAK = 800
 local PLAYER_MAX_SPEED = 350 -- Px sec-1
 local PLAYER_FRICTION = -3 -- Px sec-1
 local PLAYER_ROTATION_SPEED = 3 -- rad sec-1
+local bbWidth, bbHeight = WIDTH / 30, 2 * HEIGHT / 20 -- bounding box
 
 -- the prototype holds the behaviour
 local vehiclePrototype = {}
+
+-- initialize the dependencies
+function vehicleModule.init(collisionDetectionModuleIn)
+  vehiclePrototype.staticCollisionDetectionModule = collisionDetectionModuleIn
+end
 
 -- debug is optional
 function vehicleModule.new(x0, y0, theta0, debugging)
 
   -- the instance holds the state
-  local vehicle = {x = x0, y = y0, theta = theta0, vx = 0, vy = 0, debug = debugging or false}
+  local vehicle = {
+    x = x0,
+    y = y0,
+    theta = theta0,
+    vx = 0,
+    vy = 0,
+    bbCollision = vehiclePrototype.staticCollisionDetectionModule.rectangle(x0 - bbWidth / 2, y0 - bbHeight / 2, bbWidth, bbHeight),
+    debug = debugging or false
+  }
 
   -- behaviour is defined in the prototype
   setmetatable(vehicle, {__index = vehiclePrototype})
 
   return vehicle
+end
+
+-- private function, solve vehicle collisions
+local function solveVehicleCollisions(vehicle, collisionModule)
+  local collisions = collisionModule.collisions(vehicle.bbCollision)
+  for shape, separatingVector in pairs(collisions) do
+    -- simplest collision handling:
+    -- simply move the player (as the shape of the map cannot move anyway)
+    -- no rotation
+    -- no speed modification
+    vehicle.x = vehicle.x + separatingVector.x
+    vehicle.y = vehicle.y + separatingVector.y
+
+    vehicle.bbCollision:moveTo(vehicle.x + separatingVector.x, vehicle.y + separatingVector.y)
+  end
 end
 
 -- then all the functions are methods
@@ -66,8 +99,8 @@ function vehiclePrototype:update(dt, accelerates, breaks, steers)
 	end
 
 	-- compute the new speed vector from the direction and norm (newSpeed norm might be null)
-	newSpeedX = newSpeedNorm * newSpeedDirXNormalized
-	newSpeedY = newSpeedNorm * newSpeedDirYNormalized
+	local newSpeedX = newSpeedNorm * newSpeedDirXNormalized
+	local newSpeedY = newSpeedNorm * newSpeedDirYNormalized
 
   -- compute the new position
 	local newPositionX = x1 + newSpeedX * dt
@@ -79,6 +112,12 @@ function vehiclePrototype:update(dt, accelerates, breaks, steers)
 	self.vx = newSpeedX
 	self.vy = newSpeedY
 	self.theta = self.theta + thetaDelta
+
+  -- update the collision engine
+  self.bbCollision:moveTo(self.x, self.y)
+  self.bbCollision:setRotation(self.theta)
+
+  solveVehicleCollisions(self, self.staticCollisionDetectionModule)
 end
 
 function vehiclePrototype:draw()
@@ -96,15 +135,15 @@ function vehiclePrototype:draw()
 
   if self.debug
   then
-    -- self position
+    -- position
     love.graphics.setColor(colors.WHITE())
     love.graphics.circle("line", self.x, self.y, 5)
 
-    -- display speed in green
+    -- speed
     love.graphics.setColor(0, 255, 0)
     love.graphics.line(self.x, self.y, self.x + self.vx, self.y + self.vy)
 
-    -- coordinates system
+    -- local coordinate system
     love.graphics.setColor(255, 0, 0)
     xAxisVectorGlobalDx, xAxisVectorGlobalDy = geometryLib.localToGlobalVector(20, 0, self.x, self.y, self.theta)
     love.graphics.line(self.x, self.y, self.x + xAxisVectorGlobalDx, self.y + xAxisVectorGlobalDy)
@@ -112,7 +151,15 @@ function vehiclePrototype:draw()
     love.graphics.setColor(0, 0, 255)
     yAxisVectorGlobalDx, yAxisVectorGlobalDy = geometryLib.localToGlobalVector(0, 20, self.x, self.y, self.theta)
     love.graphics.line(self.x, self.y, self.x + yAxisVectorGlobalDx, self.y + yAxisVectorGlobalDy)
+
+    -- bounding box
+    self.bbCollision:draw()
   end
+end
+
+function vehiclePrototype:setDebug(debugging)
+  self.debug = debugging
+
 end
 
 return vehicleModule

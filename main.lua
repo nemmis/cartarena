@@ -5,19 +5,30 @@
 local map = require "map"
 local colors = require "color"
 local vehicleInput = require "vehicleInput"
-local vehicle = require "vehicle/vehicle"
+local vehicleModule = require "vehicle/vehicle"
+
+-- creates a Collision Detection Module instance
+local HC = require "dependencies/vrld-HC-410cf04"
 
 local debuggingEnabled = true
-local drivingInputType = vehicleInput.TYPE_THIRD_PERSON()
-
 local HEIGHT = love.graphics.getHeight()
 local WIDTH = love.graphics.getWidth()
 
-local vehicle = vehicle.new(WIDTH / 16, HEIGHT / 2, 0, debuggingEnabled)
-local gamepad = nil
+local gamepad
+local drivingInputType = vehicleInput.TYPE_THIRD_PERSON()
+local vehicle
+
+local rectangleObstacle
 
 function love.load()
   gamepad = love.joystick.getJoysticks()[1]
+
+  -- add the obstacle to the collision system
+  rectangleObstacle = {ax = WIDTH/4, ay = HEIGHT/2, width = 300, height = 200}
+  rectangleObstacle.bbColl = HC.rectangle(rectangleObstacle.ax, rectangleObstacle.ay, rectangleObstacle.width, rectangleObstacle.height)
+
+  vehicleModule.init(HC)
+  vehicle = vehicleModule.new(WIDTH / 16, HEIGHT / 2, 0, debuggingEnabled)
 end
 
 function love.update(dt)
@@ -31,7 +42,6 @@ function love.update(dt)
   local accelerates, breaks, steers = vehicleInput.getDriverInput(gamepad, vehicle, drivingInputType)
 
   vehicle:update(dt, accelerates, breaks, steers)
-
 end
 
 function love.draw()
@@ -39,8 +49,9 @@ function love.draw()
   love.graphics.setColor(colors.WHITE())
   love.graphics.print("FPS: " .. love.timer.getFPS(), 5, 5)
 
-  --draw map
-  map.drawMap()
+  -- draw obstacle
+  love.graphics.rectangle("line", rectangleObstacle.ax, rectangleObstacle.ay, rectangleObstacle.width, rectangleObstacle.height)
+
   vehicle:draw()
 
   if debuggingEnabled
@@ -55,6 +66,7 @@ function love.gamepadpressed( joystick, button )
   -- toggle debug drawing
   if button == 'start'
   then debuggingEnabled = not debuggingEnabled
+    vehicle:setDebug(debuggingEnabled)
   end
 
   if button == 'y'
