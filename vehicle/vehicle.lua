@@ -124,7 +124,7 @@ function vehiclePrototype:draw()
   --TODO use transformation push / pop
 
   -- draw player
-  love.graphics.setColor(colors.ORANGE())
+  love.graphics.setColor(color.ORANGE())
 
   -- line for the player in Px
   -- be careful player.x, player.y should be the center of gravity
@@ -136,7 +136,7 @@ function vehiclePrototype:draw()
   if self.debug
   then
     -- position
-    love.graphics.setColor(colors.WHITE())
+    love.graphics.setColor(color.WHITE())
     love.graphics.circle("line", self.x, self.y, 5)
 
     -- speed

@@ -2,7 +2,7 @@
 -- press Y to drive in 3rd person model
 -- press X to drive in 1st person mode
 
-local map = require "map"
+local mapModule = require "map"
 local colors = require "color"
 local vehicleInput = require "vehicleInput"
 local vehicleModule = require "vehicle/vehicle"
@@ -14,18 +14,17 @@ local debuggingEnabled = true
 local HEIGHT = love.graphics.getHeight()
 local WIDTH = love.graphics.getWidth()
 
-local gamepad
 local drivingInputType = vehicleInput.TYPE_THIRD_PERSON()
+local gamepad
 local vehicle
+local map
 
 local rectangleObstacle
 
 function love.load()
   gamepad = love.joystick.getJoysticks()[1]
 
-  -- add the obstacle to the collision system
-  rectangleObstacle = {ax = WIDTH/4, ay = HEIGHT/2, width = 300, height = 200}
-  rectangleObstacle.bbColl = HC.rectangle(rectangleObstacle.ax, rectangleObstacle.ay, rectangleObstacle.width, rectangleObstacle.height)
+  mapModule.init(HC)
 
   vehicleModule.init(HC)
   vehicle = vehicleModule.new(WIDTH / 16, HEIGHT / 2, 0, debuggingEnabled)
@@ -49,10 +48,8 @@ function love.draw()
   love.graphics.setColor(colors.WHITE())
   love.graphics.print("FPS: " .. love.timer.getFPS(), 5, 5)
 
-  -- draw obstacle
-  love.graphics.rectangle("line", rectangleObstacle.ax, rectangleObstacle.ay, rectangleObstacle.width, rectangleObstacle.height)
-
   vehicle:draw()
+  mapModule.draw()
 
   if debuggingEnabled
       then
