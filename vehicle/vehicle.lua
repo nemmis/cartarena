@@ -33,6 +33,7 @@ function vehicleModule.new(x0, y0, theta0, debugging)
     vx = 0,
     vy = 0,
     bbCollision = vehiclePrototype.staticCollisionDetectionModule.rectangle(x0 - bbWidth / 2, y0 - bbHeight / 2, bbWidth, bbHeight),
+    separationVectors = {},
     debug = debugging or false
   }
 
@@ -45,6 +46,11 @@ end
 -- private function, solve vehicle collisions
 local function solveVehicleCollisions(vehicle, collisionModule)
   local collisions = collisionModule.collisions(vehicle.bbCollision)
+
+  for k in pairs (vehicle.separationVectors) do
+    vehicle.separationVectors[k] = nil
+  end
+
   for shape, separatingVector in pairs(collisions) do
     -- simplest collision handling:
     -- simply move the player (as the shape of the map cannot move anyway)
@@ -54,6 +60,10 @@ local function solveVehicleCollisions(vehicle, collisionModule)
     vehicle.y = vehicle.y + separatingVector.y
 
     vehicle.bbCollision:moveTo(vehicle.x + separatingVector.x, vehicle.y + separatingVector.y)
+
+    --store the separation vector for debugging purpose
+    local cx, cy = shape:center()
+    table.insert(vehicle.separationVectors, {cx = cx, cy = cy, vecX = separatingVector.x, vecY = separatingVector.y})
   end
 end
 
@@ -154,6 +164,12 @@ function vehiclePrototype:draw()
 
     -- bounding box
     self.bbCollision:draw()
+
+    -- separatingVector
+    for _, data in ipairs(self.separationVectors) do
+      local scale = 8
+      love.graphics.line(data.cx, data.cy, data.cx + data.vecX * scale, data.cy + data.vecY * scale)
+    end
   end
 end
 
