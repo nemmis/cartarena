@@ -59,7 +59,7 @@ local function solveVehicleCollisions(vehicle, collisionModule)
     vehicle.x = vehicle.x + separatingVector.x
     vehicle.y = vehicle.y + separatingVector.y
 
-    vehicle.bbCollision:moveTo(vehicle.x + separatingVector.x, vehicle.y + separatingVector.y)
+    vehicle.bbCollision:moveTo(vehicle.x, vehicle.y)
 
     --store the separation vector for debugging purpose
     local cx, cy = shape:center()
