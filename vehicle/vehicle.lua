@@ -33,9 +33,13 @@ function vehicleModule.new(x0, y0, theta0, debugging)
     vx = 0,
     vy = 0,
     bbCollision = vehiclePrototype.staticCollisionDetectionModule.rectangle(x0 - bbWidth / 2, y0 - bbHeight / 2, bbWidth, bbHeight),
+    -- collision response type
+    collisionResponseType = "validStates",
     -- sum of all separation vector
     separationVectorX = 0,
     separationVectorY = 0,
+    -- all the separation vector at a given frame
+    separationVectors = {},
     debug = debugging or false
   }
 
@@ -94,6 +98,17 @@ local function getNewState(dt, accelerates, breaks, steers, x0, y0, theta0, vx0,
   return newPositionX, newPositionY, newTheta, newSpeedX, newSpeedY
 end
 
+local function updateVehicleState(vehicle, x, y, theta, vx, vy)
+  -- collision engine
+  vehicle.bbCollision:moveTo(x, y)
+  vehicle.bbCollision:setRotation(theta)
+  vehicle.x = x
+  vehicle.y = y
+  vehicle.theta = theta
+  vehicle.vx = vx
+  vehicle.vy = vy
+end
+
 -- then all the functions are methods
 -- accelerates and breaks in [0 1]
 -- steers in [-1 1] (left, right)
@@ -103,34 +118,58 @@ function vehiclePrototype:update(dt, accelerates, breaks, steers)
   local x0, y0, theta0 = self.x, self.y, self.theta
   local x1, y1, theta1, vx1, vy1 = getNewState(dt, accelerates, breaks, steers, self.x, self.y, self.theta, self.vx, self.vy)
 
-  -- use the collision detection engine to see if the next state is valid
-  self.bbCollision:moveTo(x1, y1)
-  self.bbCollision:setRotation(theta1)
-  local collisions = self.staticCollisionDetectionModule.collisions(self.bbCollision)
+  ----------------------------
+  -- Collision detection
+  ----------------------------
+
+  -- use the collision detection engine to see if there is a collision with the new position and get the separation vector
   local collide = false
   local separationX, separationY = 0, 0
-  for _, separatingVector in pairs(collisions) do
+
+  -- reiitialize separation vectors
+  for k in pairs (self.separationVectors) do
+    self.separationVectors[k] = nil
+  end
+
+  self.bbCollision:moveTo(x1, y1)
+  self.bbCollision:setRotation(theta1)
+
+  local collisions = self.staticCollisionDetectionModule.collisions(self.bbCollision)
+
+  for shape, separatingVector in pairs(collisions) do
     collide = true
     separationX = separationX + separatingVector.x
     separationY = separationY + separatingVector.y
+
+    -- store each separation vector for debugging purpose
+    local cx, cy = shape:center()
+    table.insert(self.separationVectors, {cx = cx, cy = cy, vecX = separatingVector.x, vecY = separatingVector.y})
   end
+
+  -- store the resulting separation vector for debugging purpose
   self.separationVectorX = separationX
   self.separationVectorY = separationY
 
+  -- move back the collision shape
+  self.bbCollision:moveTo(x0, y0)
+  self.bbCollision:setRotation(theta0)
+
+  ----------------------------
+  -- Collision response
+  ----------------------------
+
   -- if there is a collision don't move the vehicle and set the speed to zero
   -- can be inaccurate for high speed when distance between two states is high
-  if collide == true then
-    self.bbCollision:moveTo(x0, y0)
-    self.bbCollision:setRotation(theta0)
-    self.vx = 0
-    self.vy = 0
-  else
-    -- update the player, collision engine already updated
-  	self.x = x1
-  	self.y = y1
-  	self.vx = vx1
-  	self.vy = vy1
-  	self.theta = theta1
+  if self.collisionResponseType == "validStates" then
+    if collide then
+      self.vx = 0
+      self.vy = 0
+    else
+      -- update the player
+      updateVehicleState(self, x1, y1, theta1, vx1, vy1)
+    end
+  else -- separating vectors
+      updateVehicleState(self, x1 + separationX, y1 + separationY, theta1, vx1, vy1)
   end
 end
 
@@ -169,10 +208,16 @@ function vehiclePrototype:draw()
     -- bounding box
     self.bbCollision:draw()
 
-    -- separatingVector
+    -- resulting separatingVector
     love.graphics.setColor(color.ORANGE())
     local scale = 20
     love.graphics.line(self.x, self.y, self.x + self.separationVectorX * scale, self.y + self.separationVectorY * scale)
+
+    -- all separating vectors
+    for _, data in ipairs(self.separationVectors) do
+      local scale = 8
+      love.graphics.line(data.cx, data.cy, data.cx + data.vecX * scale, data.cy + data.vecY * scale)
+    end
   end
 end
 
