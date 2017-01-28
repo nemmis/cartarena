@@ -33,7 +33,9 @@ function vehicleModule.new(x0, y0, theta0, debugging)
     vx = 0,
     vy = 0,
     bbCollision = vehiclePrototype.staticCollisionDetectionModule.rectangle(x0 - bbWidth / 2, y0 - bbHeight / 2, bbWidth, bbHeight),
-    separationVectors = {},
+    -- sum of all separation vector
+    separationVectorX = 0,
+    separationVectorY = 0,
     debug = debugging or false
   }
 
@@ -41,30 +43,6 @@ function vehicleModule.new(x0, y0, theta0, debugging)
   setmetatable(vehicle, {__index = vehiclePrototype})
 
   return vehicle
-end
-
--- private function, solve vehicle collisions
-local function solveVehicleCollisions(vehicle, collisionModule)
-  local collisions = collisionModule.collisions(vehicle.bbCollision)
-
-  for k in pairs (vehicle.separationVectors) do
-    vehicle.separationVectors[k] = nil
-  end
-
-  for shape, separatingVector in pairs(collisions) do
-    -- simplest collision handling:
-    -- simply move the player (as the shape of the map cannot move anyway)
-    -- no rotation
-    -- no speed modification
-    vehicle.x = vehicle.x + separatingVector.x
-    vehicle.y = vehicle.y + separatingVector.y
-
-    vehicle.bbCollision:moveTo(vehicle.x, vehicle.y)
-
-    --store the separation vector for debugging purpose
-    local cx, cy = shape:center()
-    table.insert(vehicle.separationVectors, {cx = cx, cy = cy, vecX = separatingVector.x, vecY = separatingVector.y})
-  end
 end
 
 -- return new position, orientation, speed
@@ -121,20 +99,39 @@ end
 -- steers in [-1 1] (left, right)
 function vehiclePrototype:update(dt, accelerates, breaks, steers)
 
+  -- find the candidate next state
+  local x0, y0, theta0 = self.x, self.y, self.theta
   local x1, y1, theta1, vx1, vy1 = getNewState(dt, accelerates, breaks, steers, self.x, self.y, self.theta, self.vx, self.vy)
 
-	-- update the player
-	self.x = x1
-	self.y = y1
-	self.vx = vx1
-	self.vy = vy1
-	self.theta = theta1
+  -- use the collision detection engine to see if the next state is valid
+  self.bbCollision:moveTo(x1, y1)
+  self.bbCollision:setRotation(theta1)
+  local collisions = self.staticCollisionDetectionModule.collisions(self.bbCollision)
+  local collide = false
+  local separationX, separationY = 0, 0
+  for _, separatingVector in pairs(collisions) do
+    collide = true
+    separationX = separationX + separatingVector.x
+    separationY = separationY + separatingVector.y
+  end
+  self.separationVectorX = separationX
+  self.separationVectorY = separationY
 
-  -- update the collision engine
-  self.bbCollision:moveTo(self.x, self.y)
-  self.bbCollision:setRotation(self.theta)
-
-  solveVehicleCollisions(self, self.staticCollisionDetectionModule)
+  -- if there is a collision don't move the vehicle and set the speed to zero
+  -- can be inaccurate for high speed when distance between two states is high
+  if collide == true then
+    self.bbCollision:moveTo(x0, y0)
+    self.bbCollision:setRotation(theta0)
+    self.vx = 0
+    self.vy = 0
+  else
+    -- update the player, collision engine already updated
+  	self.x = x1
+  	self.y = y1
+  	self.vx = vx1
+  	self.vy = vy1
+  	self.theta = theta1
+  end
 end
 
 function vehiclePrototype:draw()
@@ -173,10 +170,9 @@ function vehiclePrototype:draw()
     self.bbCollision:draw()
 
     -- separatingVector
-    for _, data in ipairs(self.separationVectors) do
-      local scale = 8
-      love.graphics.line(data.cx, data.cy, data.cx + data.vecX * scale, data.cy + data.vecY * scale)
-    end
+    love.graphics.setColor(color.ORANGE())
+    local scale = 20
+    love.graphics.line(self.x, self.y, self.x + self.separationVectorX * scale, self.y + self.separationVectorY * scale)
   end
 end
 
