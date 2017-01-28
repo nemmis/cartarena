@@ -67,61 +67,68 @@ local function solveVehicleCollisions(vehicle, collisionModule)
   end
 end
 
+-- return new position, orientation, speed
+local function getNewState(dt, accelerates, breaks, steers, x0, y0, theta0, vx0, vy0)
+
+  -- compute acceleration factor
+  local accelerationFactor = 0
+  if accelerates > 0
+    then accelerationFactor = accelerates * PLAYER_ACCELERATION
+  elseif breaks > 0
+    then accelerationFactor = -breaks * PLAYER_BREAK
+  end
+
+  local v0Norm = geometryLib.getNorm(vx0, vy0)
+
+  -- find the norm of the speed
+  -- speed norm bounded between 0 and PLAYER_MAX_SPEED
+  -- the speed is always in the direction of the local Y axis at the start of an update loop
+  local newSpeedNorm = v0Norm + accelerationFactor * dt + PLAYER_FRICTION
+  if newSpeedNorm > PLAYER_MAX_SPEED
+    then newSpeedNorm = PLAYER_MAX_SPEED
+  elseif newSpeedNorm < 0
+    then newSpeedNorm = 0
+  end
+
+  -- find the speed direction, potentially rotated
+  -- for floating point values
+  -- could simplify the code by introducing a speed direction
+  -- we have the formula if old speed is not null vector, if vehicle is stopped then it is the Y axis of the local coordinate system
+  local newSpeedDirXNormalized, newSpeedDirYNormalized = geometryLib.localToGlobalVector(0, 1, x0, y0, theta0)
+  local thetaDelta = 0
+  if newSpeedNorm > 0	and steers ~= 0 -- if the speed norm is null, the speed is the null vector (and hence does not need to be rotated)
+  then
+    thetaDelta = steers * PLAYER_ROTATION_SPEED * dt
+    newSpeedDirXNormalized, newSpeedDirYNormalized = geometryLib.rotate(newSpeedDirXNormalized, newSpeedDirYNormalized, thetaDelta)
+  end
+
+  -- compute the new speed vector from the direction and norm (newSpeed norm might be null)
+  local newSpeedX = newSpeedNorm * newSpeedDirXNormalized
+  local newSpeedY = newSpeedNorm * newSpeedDirYNormalized
+
+  -- compute the new position
+  local newPositionX = x0 + newSpeedX * dt
+  local newPositionY = y0 + newSpeedY * dt
+
+  --compute the new orientation
+  local newTheta = theta0 + thetaDelta
+
+  return newPositionX, newPositionY, newTheta, newSpeedX, newSpeedY
+end
+
 -- then all the functions are methods
 -- accelerates and breaks in [0 1]
 -- steers in [-1 1] (left, right)
 function vehiclePrototype:update(dt, accelerates, breaks, steers)
 
-  local accelerationFactor = 0
-	if accelerates > 0
-		then accelerationFactor = accelerates * PLAYER_ACCELERATION
-	elseif breaks > 0
-		then accelerationFactor = -breaks * PLAYER_BREAK
-	end
-
-	local x1 = self.x
-	local y1 = self.y
-	local v1x = self.vx
-	local v1y = self.vy
-	local theta1 = self.theta
-	local v1Norm = geometryLib.getNorm(v1x, v1y)
-
-  -- find the norm of the speed
-  -- speed norm bounded between 0 and PLAYER_MAX_SPEED
-  -- the speed is always in the direction of the local Y axis at the start of an update loop
-	local newSpeedNorm = v1Norm + accelerationFactor * dt + PLAYER_FRICTION
-	if newSpeedNorm > PLAYER_MAX_SPEED
-		then newSpeedNorm = PLAYER_MAX_SPEED
-	elseif newSpeedNorm < 0
-		then newSpeedNorm = 0
-	end
-
-	-- find the speed direction, potentially rotated
-	-- for floating point values
-	-- could simplify the code by introducing a speed direction
-  -- we have the formula if old speed is not null vector, if vehicle is stopped then it is the Y axis of the local coordinate system
-	local newSpeedDirXNormalized, newSpeedDirYNormalized = geometryLib.localToGlobalVector(0, 1, x1, y1, theta1)
-	local thetaDelta = 0
-	if newSpeedNorm > 0	and steers ~= 0 -- if the speed norm is null, the speed is the null vector (and hence does not need to be rotated)
-	then
-  	thetaDelta = steers * PLAYER_ROTATION_SPEED * dt
-  	newSpeedDirXNormalized, newSpeedDirYNormalized = geometryLib.rotate(newSpeedDirXNormalized, newSpeedDirYNormalized, thetaDelta)
-	end
-
-	-- compute the new speed vector from the direction and norm (newSpeed norm might be null)
-	local newSpeedX = newSpeedNorm * newSpeedDirXNormalized
-	local newSpeedY = newSpeedNorm * newSpeedDirYNormalized
-
-  -- compute the new position
-	local newPositionX = x1 + newSpeedX * dt
-	local newPositionY = y1 + newSpeedY * dt
+  local x1, y1, theta1, vx1, vy1 = getNewState(dt, accelerates, breaks, steers, self.x, self.y, self.theta, self.vx, self.vy)
 
 	-- update the player
-	self.x = newPositionX
-	self.y = newPositionY
-	self.vx = newSpeedX
-	self.vy = newSpeedY
-	self.theta = self.theta + thetaDelta
+	self.x = x1
+	self.y = y1
+	self.vx = vx1
+	self.vy = vy1
+	self.theta = theta1
 
   -- update the collision engine
   self.bbCollision:moveTo(self.x, self.y)
