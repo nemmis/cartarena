@@ -27,7 +27,7 @@ function love.load()
   mapModule.init(HC)
 
   vehicleModule.init(HC)
-  vehicle = vehicleModule.new(WIDTH / 16, HEIGHT / 2, 0, debuggingEnabled)
+  vehicle = vehicleModule.new(WIDTH / 16, HEIGHT / 8, 0, debuggingEnabled)
 end
 
 function love.update(dt)
