@@ -12,7 +12,7 @@ local PLAYER_BREAK = 800
 local PLAYER_MAX_SPEED = 350 -- Px sec-1
 local PLAYER_FRICTION = -3 -- Px sec-1
 local PLAYER_ROTATION_SPEED = 3 -- rad sec-1
-local bbWidth, bbHeight = WIDTH / 30, 2 * HEIGHT / 20 -- bounding box
+local boundingRadius = 30
 
 -- the prototype holds the behaviour
 local vehiclePrototype = {}
@@ -32,9 +32,9 @@ function vehicleModule.new(x0, y0, theta0, debugging)
     theta = theta0,
     vx = 0,
     vy = 0,
-    bbCollision = vehiclePrototype.staticCollisionDetectionModule.rectangle(x0 - bbWidth / 2, y0 - bbHeight / 2, bbWidth, bbHeight),
+    bbCollision = vehiclePrototype.staticCollisionDetectionModule.circle(x0, y0, boundingRadius),
     -- collision response type
-    collisionResponseType = "validStates",
+    collisionResponseType = "separating",
     -- sum of all separation vector
     separationVectorX = 0,
     separationVectorY = 0,
