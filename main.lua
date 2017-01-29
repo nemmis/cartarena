@@ -6,6 +6,7 @@ local mapModule = require "map"
 local colors = require "color"
 local vehicleInput = require "vehicleInput"
 local vehicleModule = require "vehicle/vehicle"
+local trajectoryModule = require "trajectory"
 
 -- creates a Collision Detection Module instance
 local HC = require "dependencies/vrld-HC-410cf04"
@@ -18,6 +19,7 @@ local drivingInputType = vehicleInput.TYPE_THIRD_PERSON()
 local gamepad
 local vehicle
 local map
+local trajectory
 
 local rectangleObstacle
 
@@ -28,6 +30,7 @@ function love.load()
 
   vehicleModule.init(HC)
   vehicle = vehicleModule.new(WIDTH / 16, HEIGHT / 8, 0, debuggingEnabled)
+  trajectory = trajectoryModule.new()
 end
 
 function love.update(dt)
@@ -41,6 +44,9 @@ function love.update(dt)
   local accelerates, breaks, steers = vehicleInput.getDriverInput(gamepad, vehicle, drivingInputType)
 
   vehicle:update(dt, accelerates, breaks, steers)
+
+  trajectory:add(vehicle.x, vehicle.y)
+
 end
 
 function love.draw()
@@ -50,7 +56,8 @@ function love.draw()
 
   vehicle:draw()
   mapModule.draw()
-
+  trajectory:draw()
+  
   if debuggingEnabled
       then
       -- driving mode
