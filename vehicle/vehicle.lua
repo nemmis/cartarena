@@ -1,3 +1,15 @@
+-- Driving requirements
+-- Player can accelerate, break, steer (right / left)
+-- The vehicle stops if the player does not accelerate (friction)
+-- TODO boost
+-- TODO go backward, is it needed ?
+-- Collision requirements
+-- Method0: use the separation vector to correct the vehicle position
+--  the bounding shape needs to be a circle as rotation cannot be corrected
+--  the speed is not corrected
+-- Method2: if a collision occurs, set the speed to 0 and keep the old valid position
+--  a bit rough, works with a rectangle as we prevent illegal states to happen
+
 local geometryLib = require 'geometryLib'
 local color = require "color"
 
