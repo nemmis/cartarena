@@ -23,7 +23,7 @@ local PLAYER_ACCELERATION = 800 -- Px sec-2
 local PLAYER_BREAK = 800
 local PLAYER_MAX_SPEED = 350 -- Px sec-1
 local PLAYER_FRICTION = -3 -- Px sec-1
-local PLAYER_ROTATION_SPEED = 3 -- rad sec-1
+local PLAYER_ROTATION_SPEED = 5 -- rad sec-1
 local boundingRadius = 30
 
 -- the prototype holds the behaviour
@@ -171,7 +171,7 @@ function vehiclePrototype:update(dt, accelerates, breaks, steers)
   ----------------------------
 
   -- if there is a collision don't move the vehicle and set the speed to zero
-  -- can be inaccurate for high speed when distance between two states is high
+  -- can be inaccurate for high speed when distance between two states is high (for example stopping before an obstacle)
   if self.collisionResponseType == "validStates" then
     if collide then
       self.vx = 0
