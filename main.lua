@@ -7,6 +7,7 @@ local colors = require "color"
 local vehicleInput = require "vehicleInput"
 local vehicleModule = require "vehicle/vehicle"
 local trajectoryModule = require "trajectory"
+local bulletModule = require "bullet"
 
 -- creates a Collision Detection Module instance
 local HC = require "dependencies/vrld-HC-410cf04"
@@ -24,6 +25,7 @@ local vehicle2
 local map
 local trajectory
 local trajectory2
+local bullet
 
 local rectangleObstacle
 
@@ -43,6 +45,10 @@ function love.load()
   -- trajectories
   trajectory = trajectoryModule.new()
   trajectory2 = trajectoryModule.new()
+
+  -- bullet
+  bulletModule.init(HC)
+  bullet = bulletModule.new(600, 100, -3, 5)
 end
 
 function love.update(dt)
@@ -51,6 +57,8 @@ function love.update(dt)
 	if gamepad:isGamepadDown('back') or love.keyboard.isDown('escape')
 		then love.event.quit()
 	end
+
+  bullet:update(dt)
 
   -- first player
   if gamepad then
@@ -65,6 +73,8 @@ function love.update(dt)
     vehicle2:update(dt, accelerates, breaks, steers)
     trajectory2:add(vehicle2.x, vehicle2.y)
   end
+
+
 end
 
 function love.draw()
@@ -80,6 +90,8 @@ function love.draw()
 
   vehicle2:draw()
   trajectory2:draw()
+
+  bullet:draw()
 
   if debuggingEnabled
       then

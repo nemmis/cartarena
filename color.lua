@@ -16,4 +16,8 @@ function colors.WHITE()
   return 255, 255, 255
 end
 
+function colors.GREEN()
+  return 0, 255, 0
+end
+
 return colors

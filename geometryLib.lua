@@ -70,4 +70,16 @@ function geometryLib.degreesToRadians(degrees)
     return degrees * math.pi / 180
 end
 
+function geometryLib.addVector(x0, y0, x1, y1)
+  return x0 + x1, y0 + y1
+end
+
+function geometryLib.dot(x0, y0, x1, y1)
+  return x0 * x1 + y0 * y1
+end
+
+function geometryLib.scale(x, y, scale)
+  return x * scale, y * scale
+end
+
 return geometryLib

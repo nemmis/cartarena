@@ -22,6 +22,7 @@ function mapModule.init(collisionEngine)
     width = 3 * WIDTH / 10,
     height = 3 * HEIGHT / 10}
   mapModule.rectangle.bbColl = mapModule.collisionEngine.rectangle(mapModule.rectangle.ax, mapModule.rectangle.ay, mapModule.rectangle.width, mapModule.rectangle.height)
+  mapModule.rectangle.bbColl:rotate(1)
 
   mapModule.rectangle2 = {
     ax = WIDTH/4 - 3 * WIDTH / 20,
