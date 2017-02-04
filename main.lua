@@ -26,6 +26,7 @@ local map
 local trajectory
 local trajectory2
 local bullet
+local trajectoryBullet
 
 local rectangleObstacle
 
@@ -45,6 +46,7 @@ function love.load()
   -- trajectories
   trajectory = trajectoryModule.new()
   trajectory2 = trajectoryModule.new()
+  trajectoryBullet = trajectoryModule.new()
 
   -- bullet
   bulletModule.init(HC)
@@ -59,6 +61,7 @@ function love.update(dt)
 	end
 
   bullet:update(dt)
+  trajectoryBullet:add(bullet.x, bullet.y)
 
   -- first player
   if gamepad then
@@ -92,7 +95,8 @@ function love.draw()
   trajectory2:draw()
 
   bullet:draw()
-
+  trajectoryBullet:draw()
+  
   if debuggingEnabled
       then
       -- driving mode
