@@ -27,10 +27,10 @@ function bulletModule.new(x0, y0, vxDir, vyDir)
   return bullet
 end
 
-local function getNewSpeed(vx0, vy0, sepX, sepY)
+local function getNewSpeed(vx0, vy0, sepX1, sepY1)
 
   -- scale for better numeric stability
-  local sepX, sepY = geometry.scale(sepX, sepY, 10)
+  local sepX, sepY = geometry.scale(sepX1, sepY1, 10)
 
   local vx0P = -vx0
   local vy0P = -vy0
@@ -40,8 +40,8 @@ local function getNewSpeed(vx0, vy0, sepX, sepY)
   local sepNorm = geometry.getNorm(sepX, sepY)
 
   -- component along the separation vector
-  local vSepX = vDotSep * sepX / sepNorm
-  local vSepY = vDotSep * sepY / sepNorm
+  local vSepX = vDotSep * sepX / (sepNorm * sepNorm)
+  local vSepY = vDotSep * sepY / (sepNorm * sepNorm)
 
   -- component orthogonal to separation vector
   local vOrthoSepX, vOrthoSepY = geometry.addVector(vSepX, vSepY, vx0, vy0)
