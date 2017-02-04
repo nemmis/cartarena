@@ -10,10 +10,12 @@ function mapModule.init(collisionEngine)
   mapModule.collisionEngine = collisionEngine
 
   -- enforce map boundaries
-  mapModule.up = mapModule.collisionEngine.rectangle(0, 0, WIDTH, HEIGHT / 100)
-  mapModule.down = mapModule.collisionEngine.rectangle(0, HEIGHT * 99 / 100, WIDTH, HEIGHT / 100)
-  mapModule.left = mapModule.collisionEngine.rectangle(0, 0, WIDTH / 200, HEIGHT)
-  mapModule.right = mapModule.collisionEngine.rectangle(WIDTH * 199 / 200, 0, WIDTH / 200, HEIGHT)
+  local boundaryWidth = 500
+  local visibleWidth = HEIGHT / 100
+  mapModule.up = mapModule.collisionEngine.rectangle(0, -boundaryWidth + visibleWidth, WIDTH, boundaryWidth)
+  mapModule.down = mapModule.collisionEngine.rectangle(0, HEIGHT - visibleWidth, WIDTH, boundaryWidth)
+  mapModule.left = mapModule.collisionEngine.rectangle(-boundaryWidth + visibleWidth, 0, boundaryWidth, HEIGHT)
+  mapModule.right = mapModule.collisionEngine.rectangle(WIDTH - visibleWidth, 0, boundaryWidth, HEIGHT)
 
   -- shapes are stored directly as a HC shape, TODO change this later
   mapModule.rectangle = {
