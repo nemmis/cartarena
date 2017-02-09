@@ -50,7 +50,7 @@ function love.load()
 
   -- bullet
   bulletModule.init(HC)
-  bullet = bulletModule.new(600, 100, -3, 5)
+  bullet = bulletModule.new(300, 700, 1, -1)
 end
 
 function love.update(dt)
@@ -89,19 +89,23 @@ function love.draw()
   mapModule.draw()
 
   vehicle:draw()
-  trajectory:draw()
+
 
   vehicle2:draw()
-  trajectory2:draw()
+
 
   bullet:draw()
-  trajectoryBullet:draw()
-  
+
+
   if debuggingEnabled
       then
       -- driving mode
       love.graphics.setColor(colors.WHITE())
       love.graphics.print(string.format("Driving type: %s", drivingInputType), 5, 20)
+
+      trajectory:draw()
+      trajectoryBullet:draw()
+      trajectory2:draw()
   end
 end
 

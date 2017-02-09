@@ -20,4 +20,8 @@ function colors.GREEN()
   return 0, 255, 0
 end
 
+function colors.PURPLE()
+  return 128, 0, 128
+end
+
 return colors
