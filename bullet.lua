@@ -7,8 +7,8 @@ local color = require 'color'
 local bulletModule = {}
 
 local bulletClass = {}
-local BULLET_SPEED_NORM = 300
-local BULLET_RADIUS = 30
+local BULLET_SPEED_NORM = 800
+local BULLET_RADIUS = 15
 
 function bulletModule.init(collisionDetection)
   bulletClass.collisionDetection = collisionDetection
@@ -102,7 +102,7 @@ function bulletClass:draw()
   --love.graphics.circle("line", self.x, self.y, self.radius)
 
   love.graphics.setColor(color.GREEN())
-  love.graphics.line(self.x, self.y, self.x + self.vx, self.y + self.vy)
+  --love.graphics.line(self.x, self.y, self.x + self.vx, self.y + self.vy)
 
 
 end
