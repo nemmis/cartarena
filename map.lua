@@ -19,8 +19,8 @@ function mapModule.init(collisionEngine)
 
   -- shapes are stored directly as a HC shape, TODO change this later
   mapModule.rectangle = {
-    ax = WIDTH/4,
-    ay = HEIGHT/2,
+    ax = 4* WIDTH/12,
+    ay = 3 * HEIGHT/8,
     width = 3 * WIDTH / 10,
     height = 3 * HEIGHT / 10}
   mapModule.rectangle.bbColl = mapModule.collisionEngine.rectangle(mapModule.rectangle.ax, mapModule.rectangle.ay, mapModule.rectangle.width, mapModule.rectangle.height)
@@ -29,14 +29,14 @@ function mapModule.init(collisionEngine)
   mapModule.rectangle2 = {
     ax = WIDTH/4 - 3 * WIDTH / 20,
     ay = HEIGHT/2,
-    width = WIDTH / 10,
-    height = 3 * HEIGHT / 10}
+    width = WIDTH / 12,
+    height = 3 * HEIGHT / 12}
   mapModule.rectangle2.bbColl = mapModule.collisionEngine.rectangle(mapModule.rectangle2.ax, mapModule.rectangle2.ay, mapModule.rectangle2.width, mapModule.rectangle2.height)
 
   mapModule.circle = {
-    cx = WIDTH / 2,
-    cy = HEIGHT / 2,
-    radius = HEIGHT / 4
+    cx = 3* WIDTH / 4,
+    cy = 2* HEIGHT / 7,
+    radius = HEIGHT / 7
   }
   mapModule.circle.bbColl = mapModule.collisionEngine.circle(mapModule.circle.cx, mapModule.circle.cy, mapModule.circle.radius)
 
