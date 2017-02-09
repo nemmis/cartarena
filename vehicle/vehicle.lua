@@ -189,14 +189,12 @@ function vehiclePrototype:draw()
   --TODO use transformation push / pop
 
   -- draw player
-  love.graphics.setColor(color.ORANGE())
+  love.graphics.setColor(color.PURPLE())
 
-  -- line for the player in Px
-  -- be careful player.x, player.y should be the center of gravity
-  local ax, ay = geometryLib.localToGlobalPoint(0, 20, self.x, self.y, self.theta)
-  local bx, by = geometryLib.localToGlobalPoint(10, -10, self.x, self.y, self.theta)
-  local cx, cy = geometryLib.localToGlobalPoint(-10, -10, self.x, self.y, self.theta)
-  love.graphics.line(ax, ay, bx, by, cx, cy, ax, ay)
+  -- bounding shape
+  self.bbCollision:draw()
+  local xLocal, yLocal = geometryLib.localToGlobalVector(0, boundingRadius, self.x, self.y, self.theta)
+  love.graphics.line(self.x, self.y, self.x + xLocal, self.y + yLocal)
 
   if self.debug
   then
@@ -210,22 +208,19 @@ function vehiclePrototype:draw()
 
     -- local coordinate system
     love.graphics.setColor(255, 0, 0)
-    xAxisVectorGlobalDx, xAxisVectorGlobalDy = geometryLib.localToGlobalVector(20, 0, self.x, self.y, self.theta)
+    local xAxisVectorGlobalDx, xAxisVectorGlobalDy = geometryLib.localToGlobalVector(20, 0, self.x, self.y, self.theta)
     love.graphics.line(self.x, self.y, self.x + xAxisVectorGlobalDx, self.y + xAxisVectorGlobalDy)
 
     love.graphics.setColor(0, 0, 255)
-    yAxisVectorGlobalDx, yAxisVectorGlobalDy = geometryLib.localToGlobalVector(0, 20, self.x, self.y, self.theta)
+    local yAxisVectorGlobalDx, yAxisVectorGlobalDy = geometryLib.localToGlobalVector(0, 20, self.x, self.y, self.theta)
     love.graphics.line(self.x, self.y, self.x + yAxisVectorGlobalDx, self.y + yAxisVectorGlobalDy)
-
-    -- bounding box
-    self.bbCollision:draw()
 
     -- resulting separatingVector
     love.graphics.setColor(color.ORANGE())
     local scale = 20
     love.graphics.line(self.x, self.y, self.x + self.separationVectorX * scale, self.y + self.separationVectorY * scale)
 
-    -- all separating vectors
+    -- all separating vectors for each shape the player collides with
     for _, data in ipairs(self.separationVectors) do
       local scale = 8
       love.graphics.line(data.cx, data.cy, data.cx + data.vecX * scale, data.cy + data.vecY * scale)
