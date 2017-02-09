@@ -21,7 +21,7 @@ local WIDTH = love.graphics.getWidth()
 -- TODO move constants to the prototype ?
 local PLAYER_ACCELERATION = 800 -- Px sec-2
 local PLAYER_BREAK = 800
-local PLAYER_MAX_SPEED = 350 -- Px sec-1
+local PLAYER_MAX_SPEED = 450 -- Px sec-1
 local PLAYER_FRICTION = -3 -- Px sec-1
 local PLAYER_ROTATION_SPEED = 5 -- rad sec-1
 local boundingRadius = 30
