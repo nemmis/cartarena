@@ -89,11 +89,13 @@ function bulletClass:update(dt)
   -- update the speed
   self.vx = v1x
   self.vy = v1y
-  self.collisionShape:moveTo(self.x, self.y)
 
   -- update the position with separation vector
   local x1 = self.x + sepX
   local y1 = self.y + sepY
+  self.x = x1
+  self.y = y1
+  self.collisionShape:moveTo(x1, y1)
 end
 
 function bulletClass:draw()
