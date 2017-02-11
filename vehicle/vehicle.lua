@@ -1,17 +1,25 @@
--- Driving requirements
--- Player can accelerate, break, steer (right / left)
--- The vehicle stops if the player does not accelerate (friction)
--- TODO boost
--- TODO go backward, is it needed ?
--- Collision requirements
--- Method0: use the separation vector to correct the vehicle position
---  the bounding shape needs to be a circle as rotation cannot be corrected
---  the speed is not corrected
--- Method2: if a collision occurs, set the speed to 0 and keep the old valid position
---  a bit rough, works with a rectangle as we prevent illegal states to happen
+--[[
+
+= Driving requirements
+
+- Player can accelerate, break, steer (right / left)
+- The vehicle stops if the player does not accelerate (friction)
+- TODO boost
+- TODO go backward, is it needed ?
+
+== Collisions requirements
+Method0: use the separation vector to correct the vehicle position
+the bounding shape needs to be a circle as rotation cannot be corrected
+the speed is not corrected
+
+Method2: if a collision occurs, set the speed to 0 and keep the old valid position
+a bit rough, works with a rectangle as we prevent illegal states to happen
+
+--]]
 
 local geometryLib = require 'geometryLib'
-local color = require "color"
+local color = require 'color'
+local trajectoryModule = require 'trajectory'
 
 local vehicleModule = {}
 
@@ -24,7 +32,7 @@ local PLAYER_BREAK = 800
 local PLAYER_MAX_SPEED = 450 -- Px sec-1
 local PLAYER_FRICTION = -3 -- Px sec-1
 local PLAYER_ROTATION_SPEED = 5 -- rad sec-1
-local boundingRadius = 30
+local boundingRadius = 20
 
 -- the prototype holds the behaviour
 local vehiclePrototype = {}
@@ -44,6 +52,7 @@ function vehicleModule.new(x0, y0, theta0, debugging)
     theta = theta0,
     vx = 0,
     vy = 0,
+    trajectory = trajectoryModule.new(),
     bbCollision = vehiclePrototype.staticCollisionDetectionModule.circle(x0, y0, boundingRadius),
     -- collision response type
     collisionResponseType = "separating",
@@ -183,6 +192,8 @@ function vehiclePrototype:update(dt, accelerates, breaks, steers)
   else -- separating vectors
       updateVehicleState(self, x1 + separationX, y1 + separationY, theta1, vx1, vy1)
   end
+
+  self.trajectory:add(self.x, self.y)
 end
 
 function vehiclePrototype:draw()
@@ -201,6 +212,9 @@ function vehiclePrototype:draw()
     -- position
     love.graphics.setColor(color.WHITE())
     love.graphics.circle("line", self.x, self.y, 5)
+
+    -- trajectory
+    self.trajectory:draw()
 
     -- speed
     love.graphics.setColor(0, 255, 0)

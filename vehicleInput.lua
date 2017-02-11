@@ -15,6 +15,15 @@ function vehicleInputModule.TYPE_FIRST_PERSON()
   return INPUT_TYPE_FIRST_PERSON
 end
 
+local function steeringThirdPerson(thumbstickX, thumbstickY, x, y, theta)
+  -- thumbstick axis mapped to vehicle local coordinate system
+  local steeringXLocal, _ = geometry.globalToLocalVector(thumbstickX, thumbstickY, x, y, theta)
+
+  -- as the vehicle coordinate is left handed, the sign as to be inversed
+  -- > 0 to go right (negative value of x-axis), < 0 to go left (in direction of x-axis)
+  return -steeringXLocal
+end
+
 -- TODO pass a transform object, is it already in love.graphics ?
 -- accelerates and breaks are either 0 or 1 (digital input)
 -- steeringDirection is in [-1 1], < 0 means left, > 0 means right
@@ -48,15 +57,6 @@ function vehicleInputModule.getDriverInput(gamepad, player, type)
   end
 
   return accelerates, breaks, steeringDirection
-end
-
-function steeringThirdPerson(thumbstickX, thumbstickY, x, y, theta)
-  -- thumbstick axis mapped to vehicle local coordinate system
-  local steeringXLocal, _ = geometry.globalToLocalVector(thumbstickX, thumbstickY, x, y, theta)
-
-  -- as the vehicle coordinate is left handed, the sign as to be inversed
-  -- > 0 to go right (negative value of x-axis), < 0 to go left (in direction of x-axis)
-  return -steeringXLocal
 end
 
 -- TODO third person view, all analog (for acceleration and breaking)

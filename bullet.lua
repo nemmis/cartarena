@@ -3,21 +3,37 @@
 -- Bounce on map elements
 local geometry = require 'geometryLib'
 local color = require 'color'
+local trajectoryModule = require 'trajectory'
 
 local bulletModule = {}
 
 local bulletClass = {}
-local BULLET_SPEED_NORM = 800
+local BULLET_SPEED_NORM = 700
 local BULLET_RADIUS = 15
 
 function bulletModule.init(collisionDetection)
   bulletClass.collisionDetection = collisionDetection
 end
 
-function bulletModule.new(x0, y0, vxDir, vyDir)
+-- @return the constant radius of a bullet
+function bulletModule.getBulletRadius()
+  return BULLET_RADIUS
+end
+
+-- @param debug is optional
+function bulletModule.new(x0, y0, vxDir, vyDir, debug)
+  local debugging = debug or false
   --TODO make sure that the speed direction is not the null vector
   local vx0, vy0 = geometry.normalize(vxDir, vyDir, BULLET_SPEED_NORM)
-  local bullet = { x = x0, y = y0, radius = BULLET_RADIUS, vx = vx0, vy = vy0}
+  local bullet = {
+    x = x0,
+    y = y0,
+    radius = BULLET_RADIUS,
+    vx = vx0,
+    vy = vy0,
+    trajectory = trajectoryModule.new(),
+    debugging = debugging
+  }
 
   -- register the collision shape
   bullet.collisionShape = bulletClass.collisionDetection.circle(bullet.x, bullet.y, bullet.radius)
@@ -96,6 +112,10 @@ function bulletClass:update(dt)
   self.x = x1
   self.y = y1
   self.collisionShape:moveTo(x1, y1)
+
+  -- trajectory
+  self.trajectory:add(x1, y1)
+  
 end
 
 function bulletClass:draw()
@@ -106,7 +126,14 @@ function bulletClass:draw()
   love.graphics.setColor(color.GREEN())
   --love.graphics.line(self.x, self.y, self.x + self.vx, self.y + self.vy)
 
+  if self.debugging
+  then self.trajectory:draw()
+  end
 
+end
+
+function bulletClass:setDebug(debugging)
+  self.debugging = debugging
 end
 
 

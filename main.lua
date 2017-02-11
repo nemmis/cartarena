@@ -8,6 +8,7 @@ local vehicleInput = require "vehicleInput"
 local vehicleModule = require "vehicle/vehicle"
 local trajectoryModule = require "trajectory"
 local bulletModule = require "bullet"
+local playerModule = require "player"
 
 -- creates a Collision Detection Module instance
 local HC = require "dependencies/vrld-HC-410cf04"
@@ -17,16 +18,14 @@ local HEIGHT = love.graphics.getHeight()
 local WIDTH = love.graphics.getWidth()
 
 -- player can be gamepad + vehicle + trajectory
+local player1
+local player2
+
 local drivingInputType = vehicleInput.TYPE_THIRD_PERSON()
 local gamepad
 local gamepad2
-local vehicle
-local vehicle2
 local map
-local trajectory
-local trajectory2
 local bullet
-local trajectoryBullet
 
 local rectangleObstacle
 
@@ -37,20 +36,15 @@ function love.load()
 
   -- map
   mapModule.init(HC)
-
-  -- vehicles
   vehicleModule.init(HC)
-  vehicle = vehicleModule.new(WIDTH / 16, HEIGHT / 8, 0, debuggingEnabled)
-  vehicle2 = vehicleModule.new(4 * WIDTH / 16, HEIGHT / 8, 0, debuggingEnabled)
+  bulletModule.init(HC)
 
-  -- trajectories
-  trajectory = trajectoryModule.new()
-  trajectory2 = trajectoryModule.new()
-  trajectoryBullet = trajectoryModule.new()
+  -- players
+  player1 = playerModule.new(WIDTH / 16, HEIGHT / 8, gamepad, debuggingEnabled)
+  player2 = playerModule.new(4 * WIDTH / 16, HEIGHT / 8, gamepad2, debuggingEnabled)
 
   -- bullet
-  bulletModule.init(HC)
-  bullet = bulletModule.new(300, 700, 1, -1)
+  bullet = bulletModule.new(300, 700, 1, -1, debuggingEnabled)
 end
 
 function love.update(dt)
@@ -61,22 +55,16 @@ function love.update(dt)
 	end
 
   bullet:update(dt)
-  trajectoryBullet:add(bullet.x, bullet.y)
 
   -- first player
   if gamepad then
-    local accelerates, breaks, steers = vehicleInput.getDriverInput(gamepad, vehicle, drivingInputType)
-    vehicle:update(dt, accelerates, breaks, steers)
-    trajectory:add(vehicle.x, vehicle.y)
+    player1:update(dt)
   end
 
   -- second player
   if gamepad2 then
-    local accelerates, breaks, steers = vehicleInput.getDriverInput(gamepad2, vehicle2, drivingInputType)
-    vehicle2:update(dt, accelerates, breaks, steers)
-    trajectory2:add(vehicle2.x, vehicle2.y)
+    player2:update(dt)
   end
-
 
 end
 
@@ -85,27 +73,16 @@ function love.draw()
   love.graphics.setColor(colors.WHITE())
   love.graphics.print("FPS: " .. love.timer.getFPS(), 5, 5)
 
-
   mapModule.draw()
-
-  vehicle:draw()
-
-
-  vehicle2:draw()
-
-
+  player1:draw()
+  player2:draw()
   bullet:draw()
-
 
   if debuggingEnabled
       then
       -- driving mode
       love.graphics.setColor(colors.WHITE())
       love.graphics.print(string.format("Driving type: %s", drivingInputType), 5, 20)
-
-      trajectory:draw()
-      trajectoryBullet:draw()
-      trajectory2:draw()
   end
 end
 
@@ -115,8 +92,9 @@ function love.gamepadpressed( joystick, button )
   -- toggle debug drawing
   if button == 'start'
   then debuggingEnabled = not debuggingEnabled
-    vehicle:setDebug(debuggingEnabled)
-    vehicle2:setDebug(debuggingEnabled)
+      player1:setDebug(debuggingEnabled)
+      player2:setDebug(debuggingEnabled)
+      bullet:setDebug(debuggingEnabled)
   end
 
   if button == 'y'
