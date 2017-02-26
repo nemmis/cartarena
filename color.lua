@@ -24,4 +24,9 @@ function colors.PURPLE()
   return 128, 0, 128
 end
 
+function colors.GREY(g)
+  local gg = g or 125
+  return gg, gg, gg
+end
+
 return colors

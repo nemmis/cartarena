@@ -44,7 +44,7 @@ function love.load()
   player2 = playerModule.new(4 * WIDTH / 16, HEIGHT / 8, gamepad2, debuggingEnabled)
 
   -- bullet
-  bullet = bulletModule.new(300, 700, 1, -1, debuggingEnabled)
+  bullet = bulletModule.newPickedBullet(debuggingEnabled)
 end
 
 function love.update(dt)
@@ -104,6 +104,11 @@ function love.gamepadpressed( joystick, button )
   if button == 'x'
   then drivingInputType = vehicleInput.TYPE_FIRST_PERSON()
   end
+
+  if button == 'rightshoulder' then
+    bullet:fire(player1.vehicle.x, player1.vehicle.y, -1, 1)
+  end
+
 
 end
 
