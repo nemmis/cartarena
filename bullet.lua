@@ -53,6 +53,9 @@ end
 -- state becomes BULLET_MOVING
 -- initialize position, speed and handle collisions
 function bulletClass:fire(x0, y0, vxDir, vyDir)
+
+  if self.state ~= BULLET_PICKED then return end
+
   --TODO make sure that the speed direction is not the null vector
   local vx0, vy0 = geometry.normalize(vxDir, vyDir, BULLET_SPEED_NORM)
   self.x = x0
@@ -74,7 +77,7 @@ end
 -- state becomes PICKED
 function bulletClass:pickUp()
   -- a bullet can only be picked if the state is STOPPED
-  --if self.state not BULLET_STOPPED
+  if self.state ~= BULLET_STOPPED then return end
 
   -- unregister from collision detection engine
   self.collisionDetection.remove(self.collisionShape)

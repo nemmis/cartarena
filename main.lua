@@ -109,6 +109,10 @@ function love.gamepadpressed( joystick, button )
     bullet:fire(player1.vehicle.x, player1.vehicle.y, -1, 1)
   end
 
+  if button == 'leftshoulder' then
+    bullet:pickUp()
+  end
+
 
 end
 
