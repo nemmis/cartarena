@@ -1,6 +1,8 @@
--- press start to toggle global debug mode
+-- Main game
+-- press start to toggle debug mode
 -- press Y to drive in 3rd person model
 -- press X to drive in 1st person mode
+-- press 'back' to quit the game
 
 local mapModule = require "map"
 local colors = require "color"
@@ -9,11 +11,12 @@ local vehicleModule = require "vehicle/vehicle"
 local trajectoryModule = require "trajectory"
 local bulletModule = require "bullet"
 local playerModule = require "player"
+local liveBulletsRegistry = require 'liveBulletsRegistry'
 
 -- creates a Collision Detection Module instance
 local HC = require "dependencies/vrld-HC-410cf04"
 
-local debuggingEnabled = true
+local debuggingEnabled = false
 local HEIGHT = love.graphics.getHeight()
 local WIDTH = love.graphics.getWidth()
 
@@ -25,7 +28,6 @@ local drivingInputType = vehicleInput.TYPE_THIRD_PERSON()
 local gamepad
 local gamepad2
 local map
-local bullet
 
 local rectangleObstacle
 
@@ -40,11 +42,8 @@ function love.load()
   bulletModule.init(HC)
 
   -- players
-  player1 = playerModule.new(WIDTH / 16, HEIGHT / 8, gamepad, debuggingEnabled)
-  player2 = playerModule.new(4 * WIDTH / 16, HEIGHT / 8, gamepad2, debuggingEnabled)
-
-  -- bullet
-  bullet = bulletModule.newPickedBullet(debuggingEnabled)
+  player1 = playerModule.new(WIDTH / 16, HEIGHT / 8, gamepad)
+  player2 = playerModule.new(4 * WIDTH / 16, HEIGHT / 8, gamepad2)
 end
 
 function love.update(dt)
@@ -53,8 +52,6 @@ function love.update(dt)
 	if gamepad:isGamepadDown('back') or love.keyboard.isDown('escape')
 		then love.event.quit()
 	end
-
-  bullet:update(dt)
 
   -- first player
   if gamepad then
@@ -66,6 +63,9 @@ function love.update(dt)
     player2:update(dt)
   end
 
+  -- bullet registry
+  liveBulletsRegistry:update(dt)
+
 end
 
 function love.draw()
@@ -76,7 +76,7 @@ function love.draw()
   mapModule.draw()
   player1:draw()
   player2:draw()
-  bullet:draw()
+  liveBulletsRegistry:draw()
 
   if debuggingEnabled
       then
@@ -94,7 +94,7 @@ function love.gamepadpressed( joystick, button )
   then debuggingEnabled = not debuggingEnabled
       player1:setDebug(debuggingEnabled)
       player2:setDebug(debuggingEnabled)
-      bullet:setDebug(debuggingEnabled)
+      liveBulletsRegistry:setDebug(debuggingEnabled)
   end
 
   if button == 'y'
@@ -105,15 +105,12 @@ function love.gamepadpressed( joystick, button )
   then drivingInputType = vehicleInput.TYPE_FIRST_PERSON()
   end
 
-  if button == 'rightshoulder' then
-    bullet:fire(player1.vehicle.x, player1.vehicle.y, -1, 1)
+  -- forward input to the players
+  player1:gamepadPressed(joystick, button)
+
+  if gamepad2 then
+    player2:gamepadPressed(joystick, button)
   end
-
-  if button == 'leftshoulder' then
-    bullet:pickUp()
-  end
-
-
 end
 
 function love.keypressed( key, scancode, isrepeat )

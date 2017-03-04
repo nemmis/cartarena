@@ -1,14 +1,15 @@
 -- Bullet
 -- Kill players when colliding with them
 -- Bounce on map elements
+
 local geometry = require 'geometryLib'
 local color = require 'color'
 local trajectoryModule = require 'trajectory'
 local timerModule = require 'timer'
 
 local bulletModule = {}
-
 local bulletClass = {}
+
 local BULLET_SPEED_NORM = 800
 local BULLET_RADIUS = 7
 local BULLET_TTL_SEC = 5

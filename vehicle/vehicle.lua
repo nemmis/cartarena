@@ -20,6 +20,7 @@ a bit rough, works with a rectangle as we prevent illegal states to happen
 local geometryLib = require 'geometryLib'
 local color = require 'color'
 local trajectoryModule = require 'trajectory'
+local bulletModule = require 'bullet'
 
 local vehicleModule = {}
 
@@ -244,7 +245,14 @@ end
 
 function vehiclePrototype:setDebug(debugging)
   self.debug = debugging
+end
 
+-- @return the starting position and speed direction of a bullet
+-- the bullet is fired along the local Y axis
+function vehiclePrototype:getBulletStartingPositionAndSpeedDirection()
+  local x, y = geometryLib.localToGlobalPoint(0, boundingRadius + bulletModule.getBulletRadius() + 1, self.x, self.y, self.theta)
+  local vxDir, vyDir = geometryLib.localToGlobalVector(0, 1,  self.x, self.y, self.theta)
+  return x, y, vxDir, vyDir
 end
 
 return vehicleModule
