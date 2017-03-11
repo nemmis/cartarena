@@ -6,7 +6,17 @@ It knows a live bullet registry that handles fired bullets.
 == Shooting
 - the player has an initial set of bullets
 - when the right bumper of the gamepad is pressed, then the player fires a bullet
-- the player cannot only fire if a bullet is available
+- the player can only fire if a bullet is available
+
+== Picking up bullets
+- the player can pick up bullets by moving over bullets that have stopped (pickable bullets)
+- bullets that are picked up can be fired
+- the player can pick up as many bullets as possible
+
+== Elimination
+0 the player is eliminated when it is shot
+0 the bullet it holds can be picked
+0 the bullet that shot the player stays at the collision point
 
 ]]
 
@@ -66,14 +76,6 @@ function playerClass:hasBullets()
   return #self.bullets > 0
 end
 
--- -- TODO finish implementing
--- function playerClass:pickUpBullet(bullet)
---   -- do not keep a bullet object
---   self.bulletCount = self.bulletCount + 1
---
---   -- destroy the bullet, a new one will be created when shooting
--- end
-
 -- Shoot a bullet in the local Y direction if a bullet is available
 -- @return a boolean that indicates if the player could shoot
 function playerClass:shoot()
@@ -89,7 +91,7 @@ function playerClass:shoot()
   return true
 end
 
--- called each time a key is pressed on a gamepad
+-- Callback called each time a key is pressed on a gamepad
 function playerClass:gamepadPressed(gamepad, button)
 
   -- see if the event is for the current player

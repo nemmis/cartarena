@@ -6,6 +6,7 @@ local geometry = require 'geometryLib'
 local color = require 'color'
 local trajectoryModule = require 'trajectory'
 local timerModule = require 'timer'
+local collisionHelpers = require 'collisionHelpers'
 
 local bulletModule = {}
 local bulletClass = {}
@@ -26,7 +27,7 @@ function bulletModule.getBulletRadius()
   return BULLET_RADIUS
 end
 
--- @brief Create a bullet
+-- @brief Bullet constructor
 -- @param debug is optional, false by default
 function bulletModule.newPickedBullet(debug)
 
@@ -50,9 +51,17 @@ function bulletModule.newPickedBullet(debug)
   return bullet
 end
 
+-- @brief create a bullet collision shape
+local function newBulletCollisionShape(cx, cy, radius, bullet)
+  local collisionShape = bulletClass.collisionDetection.circle(cx, cy, radius)
+  collisionShape.isABullet = true  -- a key to recognize that the collision shape is the one of a vehicle
+  collisionShape.bullet = bullet
+  return collisionShape
+end
+
 -- @brief Fire a bullet
 -- state becomes BULLET_MOVING
--- initialize position, speed and handle collisions
+-- initializes position, speed and handle collisions
 function bulletClass:fire(x0, y0, vxDir, vyDir)
 
   if self.state ~= BULLET_PICKED then return end
@@ -63,7 +72,7 @@ function bulletClass:fire(x0, y0, vxDir, vyDir)
   self.y = y0
   self.vx = vx0
   self.vy = vy0
-  self.collisionShape = self.collisionDetection.circle(self.x, self.y, self.radius)
+  self.collisionShape = newBulletCollisionShape(self.x, self.y, self.radius, self)
 
   -- create a new trajectory
   self.trajectory = trajectoryModule.new()
@@ -72,6 +81,11 @@ function bulletClass:fire(x0, y0, vxDir, vyDir)
   self.timerTTL:reset()
   self.timerTTL:start()
   self.state = BULLET_MOVING
+end
+
+-- @brief Indicates that a bullet can be picked
+function bulletClass:isPickable()
+  return self.state == BULLET_STOPPED
 end
 
 -- @brief Pick up a bullet
@@ -138,10 +152,10 @@ function bulletClass:update(dt)
   -- nothing to update if the bullet is picked
   if self.state == BULLET_PICKED then return end
 
-  -- update the TTL timer
+  -- update the TTL timer to know when the bullet will stop
   self.timerTTL:update(dt)
 
-  -- stop the bullet is needed
+  -- stop the bullet if needed
   if self.timerTTL:isElapsed() then
     stopBullet(self)
   end
@@ -152,15 +166,19 @@ function bulletClass:update(dt)
   -- update the state of the bullet, might reach an invalid state
   updateState(self, dt)
 
-  -- COLLISION DETECTION
+  -- COLLISION DETECTION: bouncing when meeting map elements
   -- test for collisions
   local collisions = self.collisionDetection.collisions(self.collisionShape)
   local isColliding = false
   local sepX, sepY = 0, 0
+
+  -- solve bullet vs map collisions
   for otherShape, separationVector in pairs(collisions) do
-    isColliding = true
-    sepX = sepX + separationVector.x
-    sepY = sepY + separationVector.y
+    if not collisionHelpers.isVehicleBulletCollision(self.collisionShape, otherShape) then
+      isColliding = true
+      sepX = sepX + separationVector.x
+      sepY = sepY + separationVector.y
+    end
   end
 
   -- COLLISION RESPONSE: position and speed

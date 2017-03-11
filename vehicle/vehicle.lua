@@ -21,6 +21,7 @@ local geometryLib = require 'geometryLib'
 local color = require 'color'
 local trajectoryModule = require 'trajectory'
 local bulletModule = require 'bullet'
+local collisionHelpers = require 'collisionHelpers'
 
 local vehicleModule = {}
 
@@ -43,6 +44,13 @@ function vehicleModule.init(collisionDetectionModuleIn)
   vehiclePrototype.staticCollisionDetectionModule = collisionDetectionModuleIn
 end
 
+-- @brief create a player collision shape
+local function newPlayerCollisionShape(cx, cy, radius)
+  local collisionShape = vehiclePrototype.staticCollisionDetectionModule.circle(cx, cy, boundingRadius)
+  collisionShape.isAVehicle = true  -- a key to recognize that the collision shape is the one of a vehicle
+  return collisionShape
+end
+
 -- debug is optional
 function vehicleModule.new(x0, y0, theta0, debugging)
 
@@ -54,7 +62,7 @@ function vehicleModule.new(x0, y0, theta0, debugging)
     vx = 0,
     vy = 0,
     trajectory = trajectoryModule.new(),
-    bbCollision = vehiclePrototype.staticCollisionDetectionModule.circle(x0, y0, boundingRadius),
+    bbCollision = newPlayerCollisionShape(x0, y0, boundingRadius),
     -- collision response type
     collisionResponseType = "separating",
     -- sum of all separation vector
@@ -136,6 +144,17 @@ end
 -- steers in [-1 1] (left, right)
 function vehiclePrototype:update(dt, accelerates, breaks, steers)
 
+  ----------------------------------------------------------
+  -- Handle bullet collision: picking up or elimination
+  ----------------------------------------------------------
+  local collisions = self.staticCollisionDetectionModule.collisions(self.bbCollision)
+
+  for shape, separatingVector in pairs(collisions) do
+    if collisionHelpers.isVehicleBulletCollision(self.bbCollision, shape) then
+      
+    end
+  end
+
   -- find the candidate next state
   local x0, y0, theta0 = self.x, self.y, self.theta
   local x1, y1, theta1, vx1, vy1 = getNewState(dt, accelerates, breaks, steers, self.x, self.y, self.theta, self.vx, self.vy)
@@ -148,24 +167,29 @@ function vehiclePrototype:update(dt, accelerates, breaks, steers)
   local collide = false
   local separationX, separationY = 0, 0
 
-  -- reiitialize separation vectors
+  -- reiitialize debugging separation vectors
   for k in pairs (self.separationVectors) do
     self.separationVectors[k] = nil
   end
 
+  -- move to the candidate next state, possible collisions
   self.bbCollision:moveTo(x1, y1)
   self.bbCollision:setRotation(theta1)
 
   local collisions = self.staticCollisionDetectionModule.collisions(self.bbCollision)
 
+  -- only consider collisions with map elements
   for shape, separatingVector in pairs(collisions) do
-    collide = true
-    separationX = separationX + separatingVector.x
-    separationY = separationY + separatingVector.y
+    -- ignore player vs bullet collisions
+    if  not collisionHelpers.isVehicleBulletCollision(self.bbCollision, shape) then
+      collide = true
+      separationX = separationX + separatingVector.x
+      separationY = separationY + separatingVector.y
 
-    -- store each separation vector for debugging purpose
-    local cx, cy = shape:center()
-    table.insert(self.separationVectors, {cx = cx, cy = cy, vecX = separatingVector.x, vecY = separatingVector.y})
+      -- store each separation vector for debugging purpose
+      local cx, cy = shape:center()
+      table.insert(self.separationVectors, {cx = cx, cy = cy, vecX = separatingVector.x, vecY = separatingVector.y})
+    end
   end
 
   -- store the resulting separation vector for debugging purpose
