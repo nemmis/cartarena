@@ -15,6 +15,22 @@ the speed is not corrected
 Method2: if a collision occurs, set the speed to 0 and keep the old valid position
 a bit rough, works with a rectangle as we prevent illegal states to happen
 
+== Shooting
+- the player has an initial set of bullets
+- when the right bumper of the gamepad is pressed, then the player fires a bullet
+- the player can only fire if a bullet is available
+
+== Picking up bullets
+- the player can pick up bullets by moving over bullets that have stopped (pickable bullets)
+- bullets that are picked up can be fired
+- the player can pick up as many bullets as possible
+
+== Elimination
+- the player is eliminated when it is shot
+- if the vehicle shots while standing in front of a map element, it is out-of service
+0 all the bullets it holds can be picked
+0 the bullet that shot the player stays at the collision point
+
 --]]
 
 local geometryLib = require 'geometryLib'
@@ -67,6 +83,7 @@ function vehicleModule.new(x0, y0, theta0, debugging)
     vy = 0,
     bullets = {}, -- handled as a stack
     shotRequest = false, -- we assume that there cannot be more than one shot request between two frames
+    outOfService = false,
     trajectory = trajectoryModule.new(),
     bbCollision = newPlayerCollisionShape(x0, y0, boundingRadius),
     -- collision response type
@@ -196,29 +213,47 @@ local function pickUpBullet(vehicle, bullet)
   table.insert(vehicle.bullets, bullet)
 end
 
--- accelerates and breaks in [0 1]
--- steers in [-1 1] (left, right)
-function vehiclePrototype:update(dt, accelerates, breaks, steers)
+-- @brief indicates if a vehicle is out of service
+function vehiclePrototype:isOutOfService()
+  return self.outOfService
+end
 
-  ----------------------
-  -- Shooting
-  ----------------------
-  -- process shot request
-  if self.shotRequest then
-    processShootRequest(self)
-    self.shotRequest = false
-  end
+-- @brief Handles vehicle vs bullet collisions
+-- @return a boolean that indicates if the vehicle is out of service
+-- A vehicle vs bullet collision results in either:
+--  - the bullet being picked up by the vehicle
+--  - the vehicle is out of service
+local function handleVehicleBulletCollisions(vehicle)
 
-  ----------------------------------------------------------
-  -- Handle bullet collision: picking up or elimination
-  ----------------------------------------------------------
-  local collisions = self.staticCollisionDetectionModule.collisions(self.bbCollision)
+  local collisions = vehicle.staticCollisionDetectionModule.collisions(vehicle.bbCollision)
 
   for otherShape, separatingVector in pairs(collisions) do
-    if collisionHelpers.isVehicleBulletCollision(self.bbCollision, otherShape) then
+    if collisionHelpers.isVehicleBulletCollision(vehicle.bbCollision, otherShape) then
       local bullet = otherShape.bullet
-      if bullet:isPickable() then pickUpBullet(self, bullet) end
+      -- either the vehicle can pick up the bullet or it is out-of-service
+      if bullet:isPickable() then
+        pickUpBullet(vehicle, bullet)
+        return false
+      else
+        return true
+      end
     end
+  end
+end
+
+-- @brief update loop for a vehicle
+-- @in accelerates and breaks in [0 1]
+-- @in steers in [-1 1] (left, right)
+-- a bullet object does not react on bullet vs player collisions
+function vehiclePrototype:update(dt, accelerates, breaks, steers)
+
+  -- do nothing if the vehicle is out of service
+  if self:isOutOfService() then return end
+
+  -- vehicle vs bullet collision handing
+  if handleVehicleBulletCollisions(self) then
+    self.outOfService = true
+    return
   end
 
   -- find the candidate next state
@@ -285,6 +320,15 @@ function vehiclePrototype:update(dt, accelerates, breaks, steers)
   end
 
   self.trajectory:add(self.x, self.y)
+
+  -- Shooting
+  -- Shoot a bullet after updating the position of the player
+  -- In the game loop, bullet update is happening after the vehicle update
+  if self.shotRequest then
+    processShootRequest(self)
+    self.shotRequest = false
+  end
+
 end
 
 function vehiclePrototype:draw()
@@ -292,6 +336,7 @@ function vehiclePrototype:draw()
 
   -- draw player
   love.graphics.setColor(color.PURPLE())
+  if self:isOutOfService() then love.graphics.setColor(color.GREY(25)) end
 
   -- bounding shape
   self.bbCollision:draw()

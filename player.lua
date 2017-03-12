@@ -3,21 +3,6 @@
 A player has a vehicle, bullets and a gamepad
 It knows a live bullet registry that handles fired bullets.
 
-== Shooting
-- the player has an initial set of bullets
-- when the right bumper of the gamepad is pressed, then the player fires a bullet
-- the player can only fire if a bullet is available
-
-== Picking up bullets
-- the player can pick up bullets by moving over bullets that have stopped (pickable bullets)
-- bullets that are picked up can be fired
-- the player can pick up as many bullets as possible
-
-== Elimination
-0 the player is eliminated when it is shot
-0 the bullet it holds can be picked
-0 the bullet that shot the player stays at the collision point
-
 ]]
 
 local vehicleModule = require 'vehicle/vehicle'

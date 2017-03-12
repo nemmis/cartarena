@@ -46,6 +46,11 @@ function love.load()
   player2 = playerModule.new(4 * WIDTH / 16, HEIGHT / 8, gamepad2)
 end
 
+-- Game update loop
+-- Update game objects in this order:
+-- 1) players (vehicles)
+-- 2) bullets
+-- Thins to keep in mind: when a player shoots a bullet at high speed, they should not collide at the next frame if there is no other obstacles
 function love.update(dt)
 
 	-- ends the game
