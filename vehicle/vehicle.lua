@@ -22,19 +22,23 @@ local color = require 'color'
 local trajectoryModule = require 'trajectory'
 local bulletModule = require 'bullet'
 local collisionHelpers = require 'collisionHelpers'
+local bulletModule = require 'bullet'
+
+-- singleton, used directly by all players
+local liveBulletsRegistry = require 'liveBulletsRegistry'
 
 local vehicleModule = {}
 
 local HEIGHT = love.graphics.getHeight()
 local WIDTH = love.graphics.getWidth()
 
--- TODO move constants to the prototype ?
 local PLAYER_ACCELERATION = 800 -- Px sec-2
 local PLAYER_BREAK = 800
 local PLAYER_MAX_SPEED = 450 -- Px sec-1
 local PLAYER_FRICTION = -3 -- Px sec-1
 local PLAYER_ROTATION_SPEED = 5 -- rad sec-1
 local boundingRadius = 20
+local INITIAL_BULLET_COUNT = 3
 
 -- the prototype holds the behaviour
 local vehiclePrototype = {}
@@ -61,6 +65,8 @@ function vehicleModule.new(x0, y0, theta0, debugging)
     theta = theta0,
     vx = 0,
     vy = 0,
+    bullets = {},
+    shotRequest = false, -- we assume that there cannot be more than one shot request between two frames
     trajectory = trajectoryModule.new(),
     bbCollision = newPlayerCollisionShape(x0, y0, boundingRadius),
     -- collision response type
@@ -72,6 +78,11 @@ function vehicleModule.new(x0, y0, theta0, debugging)
     separationVectors = {},
     debug = debugging or false
   }
+
+  -- add bullets
+  for i = 1, INITIAL_BULLET_COUNT do
+    table.insert(vehicle.bullets, bulletModule.newPickedBullet())
+  end
 
   -- behaviour is defined in the prototype
   setmetatable(vehicle, {__index = vehiclePrototype})
@@ -139,10 +150,50 @@ local function updateVehicleState(vehicle, x, y, theta, vx, vy)
   vehicle.vy = vy
 end
 
--- then all the functions are methods
+-- @return a boolean that indicates if a player has bullets
+function vehiclePrototype:hasBullets()
+  return #self.bullets > 0
+end
+
+--@brief Shoot a bullet during the next update, at most one bullet can be shot by game loop
+function vehiclePrototype:shoot()
+  self.shotRequest = true
+end
+
+-- @return the starting position and speed direction of a bullet
+-- the bullet is fired along the local Y axis
+local function getBulletStartingPositionAndSpeedDirection(vehicle)
+  local x, y = geometryLib.localToGlobalPoint(0, boundingRadius + bulletModule.getBulletRadius() + 1, vehicle.x, vehicle.y, vehicle.theta)
+  local vxDir, vyDir = geometryLib.localToGlobalVector(0, 1,  vehicle.x, vehicle.y, vehicle.theta)
+  return x, y, vxDir, vyDir
+end
+
+-- @brief Shoot a bullet in the local Y direction if a bullet is available
+local function processShootRequest(vehicle)
+  if not vehicle:hasBullets() then return end;
+
+  local firedBullet = table.remove(vehicle.bullets)
+
+  -- fire the bullet
+  local bulletX, bulletY, bulletVx, bulletVy = getBulletStartingPositionAndSpeedDirection(vehicle)
+  firedBullet:fire(bulletX, bulletY, bulletVx, bulletVy)
+  liveBulletsRegistry:addFiredBullet(firedBullet)
+
+  return true
+end
+
 -- accelerates and breaks in [0 1]
 -- steers in [-1 1] (left, right)
 function vehiclePrototype:update(dt, accelerates, breaks, steers)
+
+  ----------------------
+  -- Shooting
+  ----------------------
+  -- process shot request
+  if self.shotRequest then
+    processShootRequest(self)
+    self.shotRequest = false
+  end
 
   ----------------------------------------------------------
   -- Handle bullet collision: picking up or elimination
@@ -151,7 +202,7 @@ function vehiclePrototype:update(dt, accelerates, breaks, steers)
 
   for shape, separatingVector in pairs(collisions) do
     if collisionHelpers.isVehicleBulletCollision(self.bbCollision, shape) then
-      
+
     end
   end
 
@@ -269,14 +320,9 @@ end
 
 function vehiclePrototype:setDebug(debugging)
   self.debug = debugging
-end
-
--- @return the starting position and speed direction of a bullet
--- the bullet is fired along the local Y axis
-function vehiclePrototype:getBulletStartingPositionAndSpeedDirection()
-  local x, y = geometryLib.localToGlobalPoint(0, boundingRadius + bulletModule.getBulletRadius() + 1, self.x, self.y, self.theta)
-  local vxDir, vyDir = geometryLib.localToGlobalVector(0, 1,  self.x, self.y, self.theta)
-  return x, y, vxDir, vyDir
+  for _, bullet in pairs(self.bullets) do
+    bullet:setDebug(debugging)
+  end
 end
 
 return vehicleModule
