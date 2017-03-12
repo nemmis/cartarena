@@ -13,7 +13,7 @@ local bulletClass = {}
 
 local BULLET_SPEED_NORM = 800
 local BULLET_RADIUS = 7
-local BULLET_TTL_SEC = 5
+local BULLET_TTL_SEC = 1
 
 -- the three states of a bullet
 local BULLET_PICKED, BULLET_MOVING, BULLET_STOPPED = "BULLET_PICKED", "BULLET_MOVING", "BULLET_STOPPED"
