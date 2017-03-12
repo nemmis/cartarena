@@ -12,6 +12,19 @@ function liveBulletsRegistry:addFiredBullet(bullet)
   table.insert(self.bullets, bullet)
 end
 
+function liveBulletsRegistry:removePickedBullet(bullet)
+  local bulletIx = nil
+  for index, bulletElement in ipairs(self.bullets) do
+    if bulletElement == bullet then bulletIx = index end
+  end
+
+  if bulletIx ~= nil then
+    table.remove(self.bullets, bulletIx)
+  else
+    print('BUG: remove a bullet unknow to the bullet registry')
+  end
+end
+
 function liveBulletsRegistry:update(dt)
   for _, bullet in pairs(self.bullets) do
     bullet:update(dt)

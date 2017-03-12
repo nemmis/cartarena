@@ -65,7 +65,7 @@ function vehicleModule.new(x0, y0, theta0, debugging)
     theta = theta0,
     vx = 0,
     vy = 0,
-    bullets = {},
+    bullets = {}, -- handled as a stack
     shotRequest = false, -- we assume that there cannot be more than one shot request between two frames
     trajectory = trajectoryModule.new(),
     bbCollision = newPlayerCollisionShape(x0, y0, boundingRadius),
@@ -152,7 +152,11 @@ end
 
 -- @return a boolean that indicates if a player has bullets
 function vehiclePrototype:hasBullets()
-  return #self.bullets > 0
+  return self:getBulletCount() > 0
+end
+
+function vehiclePrototype:getBulletCount()
+  return #self.bullets
 end
 
 --@brief Shoot a bullet during the next update, at most one bullet can be shot by game loop
@@ -182,6 +186,16 @@ local function processShootRequest(vehicle)
   return true
 end
 
+-- @brief pick up a bullet
+-- the bullet must be pickable
+-- remove the bullet from the live bullet registry
+-- add the bullet to the player bullet set
+local function pickUpBullet(vehicle, bullet)
+  bullet:pickUp()
+  liveBulletsRegistry:removePickedBullet(bullet)
+  table.insert(vehicle.bullets, bullet)
+end
+
 -- accelerates and breaks in [0 1]
 -- steers in [-1 1] (left, right)
 function vehiclePrototype:update(dt, accelerates, breaks, steers)
@@ -200,9 +214,10 @@ function vehiclePrototype:update(dt, accelerates, breaks, steers)
   ----------------------------------------------------------
   local collisions = self.staticCollisionDetectionModule.collisions(self.bbCollision)
 
-  for shape, separatingVector in pairs(collisions) do
-    if collisionHelpers.isVehicleBulletCollision(self.bbCollision, shape) then
-
+  for otherShape, separatingVector in pairs(collisions) do
+    if collisionHelpers.isVehicleBulletCollision(self.bbCollision, otherShape) then
+      local bullet = otherShape.bullet
+      if bullet:isPickable() then pickUpBullet(self, bullet) end
     end
   end
 
@@ -295,6 +310,9 @@ function vehiclePrototype:draw()
     -- speed
     love.graphics.setColor(0, 255, 0)
     love.graphics.line(self.x, self.y, self.x + self.vx, self.y + self.vy)
+
+    -- number of bullets
+    love.graphics.print(self:getBulletCount(), self.x + 10, self.y + 10)
 
     -- local coordinate system
     love.graphics.setColor(255, 0, 0)
