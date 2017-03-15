@@ -29,4 +29,12 @@ function colors.GREY(g)
   return gg, gg, gg
 end
 
+function colors.getColor(r, g, b)
+  return {r = r, g = g, b = b}
+end
+
+function colors.getRGB(color)
+  return color.r, color.g, color.b
+end
+
 return colors

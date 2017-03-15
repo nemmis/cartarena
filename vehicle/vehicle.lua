@@ -34,7 +34,7 @@ a bit rough, works with a rectangle as we prevent illegal states to happen
 --]]
 
 local geometryLib = require 'geometryLib'
-local color = require 'color'
+local colorModule = require 'color'
 local trajectoryModule = require 'trajectory'
 local bulletModule = require 'bullet'
 local collisionHelpers = require 'collisionHelpers'
@@ -71,8 +71,12 @@ local function newPlayerCollisionShape(cx, cy, radius)
   return collisionShape
 end
 
--- debug is optional
-function vehicleModule.new(x0, y0, theta0, debugging)
+-- @param color is optional, default white
+-- @param debug is optional
+function vehicleModule.new(x0, y0, theta0, color, debugging)
+
+  local debugging = debugging or false
+  local playerColor = color or colorModule.getColor(colorModule.WHITE())
 
   -- the instance holds the state
   local vehicle = {
@@ -86,6 +90,7 @@ function vehicleModule.new(x0, y0, theta0, debugging)
     outOfService = false,
     trajectory = trajectoryModule.new(),
     bbCollision = newPlayerCollisionShape(x0, y0, boundingRadius),
+    color = playerColor,
     -- collision response type
     collisionResponseType = "separating",
     -- sum of all separation vector
@@ -93,7 +98,7 @@ function vehicleModule.new(x0, y0, theta0, debugging)
     separationVectorY = 0,
     -- all the separation vector at a given frame
     separationVectors = {},
-    debug = debugging or false
+    debug = debugging
   }
 
   -- add bullets
@@ -335,18 +340,21 @@ function vehiclePrototype:draw()
   --TODO use transformation push / pop
 
   -- draw player
-  love.graphics.setColor(color.PURPLE())
-  if self:isOutOfService() then love.graphics.setColor(color.GREY(25)) end
+  love.graphics.setColor(colorModule.getRGB(self.color))
+  if self:isOutOfService() then love.graphics.setColor(colorModule.GREY(25)) end
 
   -- bounding shape
   self.bbCollision:draw()
   local xLocal, yLocal = geometryLib.localToGlobalVector(0, boundingRadius, self.x, self.y, self.theta)
   love.graphics.line(self.x, self.y, self.x + xLocal, self.y + yLocal)
 
+  -- number of bullets
+  love.graphics.print(self:getBulletCount(), self.x + 15, self.y + 15)
+
   if self.debug
   then
     -- position
-    love.graphics.setColor(color.WHITE())
+    love.graphics.setColor(colorModule.WHITE())
     love.graphics.circle("line", self.x, self.y, 5)
 
     -- trajectory
@@ -355,9 +363,6 @@ function vehiclePrototype:draw()
     -- speed
     love.graphics.setColor(0, 255, 0)
     love.graphics.line(self.x, self.y, self.x + self.vx, self.y + self.vy)
-
-    -- number of bullets
-    love.graphics.print(self:getBulletCount(), self.x + 10, self.y + 10)
 
     -- local coordinate system
     love.graphics.setColor(255, 0, 0)
@@ -369,7 +374,7 @@ function vehiclePrototype:draw()
     love.graphics.line(self.x, self.y, self.x + yAxisVectorGlobalDx, self.y + yAxisVectorGlobalDy)
 
     -- resulting separatingVector
-    love.graphics.setColor(color.ORANGE())
+    love.graphics.setColor(colorModule.ORANGE())
     local scale = 20
     love.graphics.line(self.x, self.y, self.x + self.separationVectorX * scale, self.y + self.separationVectorY * scale)
 
