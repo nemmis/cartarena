@@ -360,9 +360,9 @@ function vehiclePrototype:draw()
     -- trajectory
     self.trajectory:draw()
 
-    -- speed
+    -- speed, scale it
     love.graphics.setColor(0, 255, 0)
-    love.graphics.line(self.x, self.y, self.x + self.vx, self.y + self.vy)
+    love.graphics.line(self.x, self.y, self.x + self.vx / 10, self.y + self.vy / 10)
 
     -- local coordinate system
     love.graphics.setColor(255, 0, 0)

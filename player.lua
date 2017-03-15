@@ -12,9 +12,9 @@ local playerModule = {}
 local playerClass = {}
 -- Creates a new player
 -- @param debug is optional
-function playerModule.new(x, y, gamepad, debug)
+function playerModule.new(x, y, theta, gamepad, debug)
   local debugging = debug or false
-  local vehicle = vehicleModule.new(x, y, 0, debug)
+  local vehicle = vehicleModule.new(x, y, theta, debug)
 
   local player = {
     gamepad = gamepad,

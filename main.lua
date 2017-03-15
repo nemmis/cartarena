@@ -42,8 +42,8 @@ function love.load()
   bulletModule.init(HC)
 
   -- players
-  player1 = playerModule.new(WIDTH / 16, HEIGHT / 8, gamepad, colors.getColor(colors.PURPLE()))
-  player2 = playerModule.new(4 * WIDTH / 16, HEIGHT / 8, gamepad2, colors.getColor(colors.GREEN()))
+  player1 = playerModule.new(WIDTH / 16, HEIGHT / 8, 0, gamepad, colors.getColor(colors.PURPLE()))
+  player2 = playerModule.new(WIDTH -  WIDTH / 16, HEIGHT - HEIGHT / 8, math.pi, gamepad2, colors.getColor(colors.GREEN()))
 end
 
 -- Game update loop
