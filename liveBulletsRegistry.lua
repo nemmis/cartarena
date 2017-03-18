@@ -1,18 +1,37 @@
--- a singleton to handle live bullets
+--[[
+An object to handle live bullets
+Bullets are added when they are fired by vehicles
+Bullets are removed when they are picked by vehicles
+]]
+
 
 local bulletModule = require 'bullet'
 
-local liveBulletsRegistry = {
-  bullets = {},
-  debugging = false
-}
+local liveBulletRegistryModule = {}
+local liveBulletRegistryClass = {}
 
-function liveBulletsRegistry:addFiredBullet(bullet)
+----------------------------------------
+-- Creates a new live bullet registry
+----------------------------------------
+function liveBulletRegistryModule.newLiveBulletRegistry()
+  local bulletRegistry = {}
+
+  bulletRegistry.bullets = {}
+  bulletRegistry.debugging = false
+
+  setmetatable(bulletRegistry, {__index = liveBulletRegistryClass})
+
+  return bulletRegistry
+end
+
+
+
+function liveBulletRegistryClass:addFiredBullet(bullet)
   -- the bullet must be fired
   table.insert(self.bullets, bullet)
 end
 
-function liveBulletsRegistry:removePickedBullet(bullet)
+function liveBulletRegistryClass:removePickedBullet(bullet)
   local bulletIx = nil
   for index, bulletElement in ipairs(self.bullets) do
     if bulletElement == bullet then bulletIx = index end
@@ -25,23 +44,23 @@ function liveBulletsRegistry:removePickedBullet(bullet)
   end
 end
 
-function liveBulletsRegistry:update(dt)
+function liveBulletRegistryClass:update(dt)
   for _, bullet in pairs(self.bullets) do
     bullet:update(dt)
   end
 end
 
-function liveBulletsRegistry:draw()
+function liveBulletRegistryClass:draw()
   for _, bullet in pairs(self.bullets) do
     bullet:draw()
   end
 end
 
-function liveBulletsRegistry:setDebug(debugging)
+function liveBulletRegistryClass:setDebug(debugging)
   self.debugging = debugging
   for _, bullet in pairs(self.bullets) do
     bullet:setDebug(debugging)
   end
 end
 
-return liveBulletsRegistry
+return liveBulletRegistryModule

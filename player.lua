@@ -10,11 +10,14 @@ local vehicleInput = require 'vehicleInput'
 
 local playerModule = {}
 local playerClass = {}
+
+------------------------------
 -- Creates a new player
 -- @param debug is optional
-function playerModule.new(x, y, theta, gamepad, debug)
+------------------------------
+function playerModule.new(x, y, theta, bulletRegistry, color, gamepad, debug)
   local debugging = debug or false
-  local vehicle = vehicleModule.new(x, y, theta, debug)
+  local vehicle = vehicleModule.new(x, y, theta, bulletRegistry, color, debug)
 
   local player = {
     gamepad = gamepad,
@@ -26,7 +29,17 @@ function playerModule.new(x, y, theta, gamepad, debug)
   return player
 end
 
+-------------------------------------
+-- Indicates that a player has lost
+-------------------------------------
+function playerClass:hasLost()
+  return self.vehicle:isOutOfService()
+end
+
+------------------------------
+-- Update the player
 -- @returns nothing
+------------------------------
 function playerClass:update(dt)
   -- get driving inputs
   local accelerates, breaks, steers = vehicleInput.getDriverInput(self.gamepad, self.vehicle, vehicleInput.TYPE_THIRD_PERSON())
@@ -36,7 +49,16 @@ function playerClass:update(dt)
 
 end
 
+----------------------
+-- Draw the player
+----------------------
+function playerClass:draw()
+  self.vehicle:draw()
+end
+
+-----------------------------------------------------------------
 -- Callback called each time a key is pressed on a gamepad
+-----------------------------------------------------------------
 function playerClass:gamepadPressed(gamepad, button)
 
   -- see if the event is for the current player
@@ -48,9 +70,7 @@ function playerClass:gamepadPressed(gamepad, button)
   end
 end
 
-function playerClass:draw()
-  self.vehicle:draw()
-end
+
 
 function playerClass:setDebug(debugging)
   self.vehicle:setDebug(debugging)

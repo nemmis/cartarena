@@ -5,6 +5,11 @@ local mapModule = {}
 local HEIGHT = love.graphics.getHeight()
 local WIDTH = love.graphics.getWidth()
 
+-- TODO change this, make map a class
+function mapModule.getStartingPositions()
+  return {{x = 50, y = 50, theta = 0}, {x = 100, y = 100, theta = 0}}
+end
+
 -- the map is a singleton
 function mapModule.init(collisionEngine)
   mapModule.collisionEngine = collisionEngine

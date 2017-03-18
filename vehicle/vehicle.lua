@@ -39,9 +39,7 @@ local trajectoryModule = require 'trajectory'
 local bulletModule = require 'bullet'
 local collisionHelpers = require 'collisionHelpers'
 local bulletModule = require 'bullet'
-
--- singleton, used directly by all players
-local liveBulletsRegistry = require 'liveBulletsRegistry'
+local liveBulletRegistryModule = require 'liveBulletsRegistry'
 
 local vehicleModule = {}
 
@@ -59,21 +57,28 @@ local INITIAL_BULLET_COUNT = 3
 -- the prototype holds the behaviour
 local vehiclePrototype = {}
 
--- initialize the dependencies
+--------------------------------------------------
+-- Initialize the dependencies of the module
+--------------------------------------------------
 function vehicleModule.init(collisionDetectionModuleIn)
   vehiclePrototype.staticCollisionDetectionModule = collisionDetectionModuleIn
 end
 
--- @brief create a player collision shape
+--------------------------------------------------
+-- Create a vehicle collision shape
+--------------------------------------------------
 local function newPlayerCollisionShape(cx, cy, radius)
   local collisionShape = vehiclePrototype.staticCollisionDetectionModule.circle(cx, cy, boundingRadius)
   collisionShape.isAVehicle = true  -- a key to recognize that the collision shape is the one of a vehicle
   return collisionShape
 end
 
+--------------------------------------------------
+-- Create a vehicle
 -- @param color is optional, default white
 -- @param debug is optional
-function vehicleModule.new(x0, y0, theta0, color, debugging)
+--------------------------------------------------
+function vehicleModule.new(x0, y0, theta0, bulletRegistry, color, debugging)
 
   local debugging = debugging or false
   local playerColor = color or colorModule.getColor(colorModule.WHITE())
@@ -86,6 +91,7 @@ function vehicleModule.new(x0, y0, theta0, color, debugging)
     vx = 0,
     vy = 0,
     bullets = {}, -- handled as a stack
+    bulletRegistry = bulletRegistry,
     shotRequest = false, -- we assume that there cannot be more than one shot request between two frames
     outOfService = false,
     trajectory = trajectoryModule.new(),
@@ -172,16 +178,25 @@ local function updateVehicleState(vehicle, x, y, theta, vx, vy)
   vehicle.vy = vy
 end
 
+--------------------------------------------------------------
+-- Does the vehicle have bullets ?
 -- @return a boolean that indicates if a player has bullets
+--------------------------------------------------------------
 function vehiclePrototype:hasBullets()
   return self:getBulletCount() > 0
 end
 
+--------------------------------
+-- Get the number of bullets
+--------------------------------
 function vehiclePrototype:getBulletCount()
   return #self.bullets
 end
 
---@brief Shoot a bullet during the next update, at most one bullet can be shot by game loop
+------------------------------------
+-- Shoot a bullet
+-- during the next update, at most one bullet can be shot by game loop
+------------------------------------
 function vehiclePrototype:shoot()
   self.shotRequest = true
 end
@@ -203,7 +218,7 @@ local function processShootRequest(vehicle)
   -- fire the bullet
   local bulletX, bulletY, bulletVx, bulletVy = getBulletStartingPositionAndSpeedDirection(vehicle)
   firedBullet:fire(bulletX, bulletY, bulletVx, bulletVy)
-  liveBulletsRegistry:addFiredBullet(firedBullet)
+  vehicle.bulletRegistry:addFiredBullet(firedBullet)
 
   return true
 end
@@ -214,11 +229,13 @@ end
 -- add the bullet to the player bullet set
 local function pickUpBullet(vehicle, bullet)
   bullet:pickUp()
-  liveBulletsRegistry:removePickedBullet(bullet)
+  vehicle.bulletRegistry:removePickedBullet(bullet)
   table.insert(vehicle.bullets, bullet)
 end
 
--- @brief indicates if a vehicle is out of service
+---------------------------------------------------
+-- Indicates if a vehicle is out of service
+---------------------------------------------------
 function vehiclePrototype:isOutOfService()
   return self.outOfService
 end
