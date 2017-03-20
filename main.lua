@@ -1,7 +1,5 @@
 -- Main game
 -- press start to toggle debug mode
--- press Y to drive in 3rd person model
--- press X to drive in 1st person mode
 -- press 'back' to quit the game
 
 
@@ -17,12 +15,13 @@ local bulletModule = require 'bullet'
 local HC = require "dependencies/vrld-HC-410cf04"
 
 local debuggingEnabled = false
-local drivingInputType = vehicleInput.TYPE_THIRD_PERSON()
+
 
 local gamepad
 local gamepad2
 local firstCharacter
 local secondCharacter
+local map
 local round
 
 function love.load()
@@ -35,14 +34,13 @@ function love.load()
   vehicleModule.init(HC)
   bulletModule.init(HC)
 
-  -- creates the characters
-  -- each player will choose his characters
+  -- each player will choose his character
   firstCharacter = characterModule.newCharacter("Bob", colors.getColor(colors.PURPLE()), gamepad)
   secondCharacter = characterModule.newCharacter("Patrick", colors.getColor(colors.GREEN()), gamepad2)
 
-  -- creates a round
-  -- TODO do not pass the map module but an instance of a map
-  round = roundModule.newRound({firstCharacter, secondCharacter}, mapModule)
+  map = mapModule.newMap()
+
+  round = roundModule.newRound({firstCharacter, secondCharacter}, map)
 
 end
 
@@ -50,7 +48,7 @@ end
 function love.update(dt)
 
 	-- ends the game
-	if gamepad:isGamepadDown('back') or love.keyboard.isDown('escape')
+	if gamepad:isGamepadDown('back') or gamepad2:isGamepadDown('back') or love.keyboard.isDown('escape')
 		then love.event.quit()
 	end
 
@@ -73,7 +71,6 @@ function love.draw()
       then
       -- driving mode
       love.graphics.setColor(colors.WHITE())
-      love.graphics.print(string.format("Driving type: %s", drivingInputType), 5, 20)
   end
 end
 
@@ -84,14 +81,6 @@ function love.gamepadpressed( joystick, button )
   if button == 'start'
   then debuggingEnabled = not debuggingEnabled
       round:setDebug(debuggingEnabled)
-  end
-
-  if button == 'y'
-    then drivingInputType = vehicleInput.TYPE_THIRD_PERSON()
-  end
-
-  if button == 'x'
-    then drivingInputType = vehicleInput.TYPE_FIRST_PERSON()
   end
 
   round:gamepadPressed(joystick, button)
