@@ -68,11 +68,12 @@ end
 -- @return a position, table with key x, y and theta
 ----------------------------------------------
 function mapClass:getStartingPositions()
+  local offset = 60
   local startingPositions = {
-    {x = 50, y = 50, theta = -1 / 4 * math.pi },
-    {x = WIDTH - 50, y = HEIGHT - 50, theta = 3 / 4 * math.pi},
-    {x = WIDTH - 50, y = 50, theta = 1 / 4 * math.pi },
-    {x = 50, y = HEIGHT -50, theta = -3 / 4 * math.pi }
+    {x = offset, y = offset, theta = -1 / 4 * math.pi },
+    {x = WIDTH - offset, y = HEIGHT - offset, theta = 3 / 4 * math.pi},
+    {x = WIDTH - offset, y = offset, theta = 1 / 4 * math.pi },
+    {x = offset, y = HEIGHT -offset, theta = -3 / 4 * math.pi }
   }
 
   assert(#startingPositions == PLAYER_COUNT, string.format("A map must be able to handle %i players", PLAYER_COUNT))

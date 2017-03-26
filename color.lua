@@ -21,7 +21,7 @@ function colors.GREEN()
 end
 
 function colors.PURPLE()
-  return 128, 0, 128
+  return 255, 0, 255
 end
 
 function colors.GREY(g)

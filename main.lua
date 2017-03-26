@@ -42,6 +42,11 @@ function love.load()
 
   round = roundModule.newRound({firstCharacter, secondCharacter}, map)
 
+
+  -- graphics settings
+  love.graphics.setLineStyle('smooth')
+  love.graphics.setLineWidth(1)
+
 end
 
 
@@ -59,7 +64,7 @@ end
 function love.draw()
 
   love.graphics.setColor(colors.WHITE())
-  love.graphics.print("FPS: " .. love.timer.getFPS(), 5, 5)
+  love.graphics.print("FPS: " .. love.timer.getFPS(), 10, 10)
 
   if round:isFinished() then
     love.graphics.print("Round is finished !", 50, 50)

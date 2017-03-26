@@ -25,11 +25,13 @@ a bit rough, works with a rectangle as we prevent illegal states to happen
 - bullets that are picked up can be fired
 - the player can pick up as many bullets as possible
 
-== Elimination
-- the player is eliminated when it is shot
-- if the vehicle shots while standing in front of a map element, it is out-of service
-0 all the bullets it holds can be picked
-0 the bullet that shot the player stays at the collision point
+== Being hit
+- a player is eliminated when its vehicle is hit
+- a vehicle can be hit by its own bullets
+- a bullet can hit several vehicles, it does not bounce on the vehicle it hits (would it be more consistent to bounce ?)
+- when a vehicle is hit, its bullets cannot be picked (they could also be transferred immediately to the player that shot this bullet or be dropped and become pickable for anybody)
+  it is always guaranteed that there is at least one bullet remaining so the round can be finished
+- a hit vehicle cannot move and is an obstacle for other vehicles (but bullet go through)
 
 --]]
 
@@ -358,12 +360,14 @@ function vehiclePrototype:draw()
 
   -- draw player
   love.graphics.setColor(colorModule.getRGB(self.color))
-  if self:isOutOfService() then love.graphics.setColor(colorModule.GREY(25)) end
+  if self:isOutOfService() then love.graphics.setColor(colorModule.GREY(125)) end
 
   -- bounding shape
   self.bbCollision:draw()
   local xLocal, yLocal = geometryLib.localToGlobalVector(0, boundingRadius, self.x, self.y, self.theta)
+  love.graphics.setLineWidth(2)
   love.graphics.line(self.x, self.y, self.x + xLocal, self.y + yLocal)
+  love.graphics.setLineWidth(1)
 
   -- number of bullets
   love.graphics.print(self:getBulletCount(), self.x + 15, self.y + 15)
