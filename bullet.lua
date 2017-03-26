@@ -96,6 +96,7 @@ function bulletClass:pickUp()
 
   -- unregister from collision detection engine
   self.collisionDetection.remove(self.collisionShape)
+  self.collisionShape = nil
 
   self.timerTTL:stop()
   self.timerTTL:reset()
