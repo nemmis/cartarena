@@ -2,7 +2,6 @@
 -- press start to toggle debug mode
 -- press 'back' to quit the game
 
-
 local colors = require 'color'
 local characterModule = require 'character'
 local mapModule = require 'map'
@@ -12,10 +11,9 @@ local vehicleInput = require 'vehicleInput'
 local bulletModule = require 'bullet'
 
 -- creates a Collision Detection Module instance
-local HC = require "dependencies/vrld-HC-410cf04"
+local HC = require "dependencies/HC-master"
 
 local debuggingEnabled = false
-
 
 local gamepad
 local gamepad2
@@ -41,7 +39,6 @@ function love.load()
   map = mapModule.newMap()
 
   round = roundModule.newRound({firstCharacter, secondCharacter}, map)
-
 
   -- graphics settings
   love.graphics.setLineStyle('smooth')
@@ -72,11 +69,6 @@ function love.draw()
 
   round:draw()
 
-  if debuggingEnabled
-      then
-      -- driving mode
-      love.graphics.setColor(colors.WHITE())
-  end
 end
 
 function love.gamepadpressed( joystick, button )
