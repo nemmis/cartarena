@@ -1,6 +1,18 @@
--- Main game
--- press start to toggle debug mode
+--[[
+
+--------------------------------------------
+  Cartarena
+      'Slick driving and sharp shooting'
+--------------------------------------------
+The driving and shooting party game.
+
+-- press 'start' to toggle debug mode
 -- press 'back' to quit the game
+-- press 'A' to accelerate
+-- press 'B' to break
+-- use the left thumbstick to steer
+-- press the right bumper to shoot
+]]
 
 local colors = require 'color'
 local characterModule = require 'character'
