@@ -15,15 +15,9 @@ The driving and shooting party game.
 ]]
 
 local colors = require 'color'
+local timerModule = require 'timer'
 local characterModule = require 'character'
-local mapModule = require 'map'
 local roundModule = require 'round'
-local vehicleModule = require 'vehicle/vehicle'
-local vehicleInput = require 'vehicleInput'
-local bulletModule = require 'bullet'
-
--- creates a Collision Detection Module instance
-local HC = require "dependencies/HC-master"
 
 local debuggingEnabled = false
 
@@ -33,29 +27,23 @@ local firstCharacter
 local secondCharacter
 local map
 local round
+local timer
 
 function love.load()
   -- input
   gamepad = love.joystick.getJoysticks()[1]
   gamepad2 = love.joystick.getJoysticks()[2]
 
-  -- module initialization
-  mapModule.init(HC)
-  vehicleModule.init(HC)
-  bulletModule.init(HC)
-
   -- each player will choose his character
   firstCharacter = characterModule.newCharacter("Bob", colors.getColor(colors.PURPLE()), gamepad)
   secondCharacter = characterModule.newCharacter("Patrick", colors.getColor(colors.GREEN()), gamepad2)
-
-  map = mapModule.newMap()
-
-  round = roundModule.newRound({firstCharacter, secondCharacter}, map)
+  round = roundModule.newRound({firstCharacter, secondCharacter})
 
   -- graphics settings
   love.graphics.setLineStyle('smooth')
-  love.graphics.setLineWidth(1)
+  love.graphics.setLineWidth(3)
 
+  timer = timerModule.new(3000)
 end
 
 
@@ -66,6 +54,7 @@ function love.update(dt)
 		then love.event.quit()
 	end
 
+  timer:update(dt)
   round:update(dt)
 
 end
@@ -75,8 +64,18 @@ function love.draw()
   love.graphics.setColor(colors.WHITE())
   love.graphics.print("FPS: " .. love.timer.getFPS(), 10, 10)
 
+  -- start a new round when the round is finished
   if round:isFinished() then
-    love.graphics.print("Round is finished !", 50, 50)
+    timer:start()
+    love.graphics.print(string.format("Round is finished, starting new one in %0.2f seconds !", timer:getRemainingMs() / 1000), 50, 50)
+    if timer:isElapsed() then
+      round:destroy()
+      round = roundModule.newRound({firstCharacter, secondCharacter})
+      timer:stop()
+      timer:reset()
+    end
+  else
+    love.graphics.print("Round is running !", 50, 50)
   end
 
   round:draw()

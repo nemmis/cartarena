@@ -37,4 +37,12 @@ function timerClass:reset()
   self.elapsedMs = 0
 end
 
+function timerClass:getRemainingMs()
+  if not self:isElapsed() then
+    return self.durationMs - self.elapsedMs
+  else
+    return 0
+  end
+end
+
 return timerModule

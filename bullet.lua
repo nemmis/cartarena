@@ -7,6 +7,7 @@ local color = require 'color'
 local trajectoryModule = require 'trajectory'
 local timerModule = require 'timer'
 local collisionHelpers = require 'collisionHelpers'
+local utils = require 'utils'
 
 local bulletModule = {}
 local bulletClass = {}
@@ -18,18 +19,18 @@ local BULLET_TTL_SEC = 1
 -- the three states of a bullet
 local BULLET_PICKED, BULLET_MOVING, BULLET_STOPPED = "BULLET_PICKED", "BULLET_MOVING", "BULLET_STOPPED"
 
-function bulletModule.init(collisionDetection)
-  bulletClass.collisionDetection = collisionDetection
-end
-
 -- @return the constant radius of a bullet
 function bulletModule.getBulletRadius()
   return BULLET_RADIUS
 end
 
+-----------------------------------------------------
 -- @brief Bullet constructor
 -- @param debug is optional, false by default
-function bulletModule.newPickedBullet(debug)
+-----------------------------------------------------
+function bulletModule.newPickedBullet(collider, debug)
+  utils.assertTypeTable(collider)
+  utils.assertTypeOptionalBoolean(debug)
 
   local debugging = debug or false
 
@@ -40,6 +41,7 @@ function bulletModule.newPickedBullet(debug)
     y = 0,
     vx = 0,
     vy = 0,
+    collider = collider,
     collisionShape = nil, -- collision shape not registered yet
     trajectory = trajectoryModule.new(), -- TODO trajectory not needed when the bullet is picked
     timerTTL = timerModule.new(BULLET_TTL_SEC * 1000),
@@ -52,8 +54,8 @@ function bulletModule.newPickedBullet(debug)
 end
 
 -- @brief create a bullet collision shape
-local function newBulletCollisionShape(cx, cy, radius, bullet)
-  local collisionShape = bulletClass.collisionDetection.circle(cx, cy, radius)
+local function newBulletCollisionShape(cx, cy, radius, bullet, collider)
+  local collisionShape = collider:circle(cx, cy, radius)
   collisionShape.isABullet = true  -- a key to recognize that the collision shape is the one of a vehicle
   collisionShape.bullet = bullet
   return collisionShape
@@ -72,7 +74,7 @@ function bulletClass:fire(x0, y0, vxDir, vyDir)
   self.y = y0
   self.vx = vx0
   self.vy = vy0
-  self.collisionShape = newBulletCollisionShape(self.x, self.y, self.radius, self)
+  self.collisionShape = newBulletCollisionShape(self.x, self.y, self.radius, self, self.collider)
 
   -- create a new trajectory
   self.trajectory = trajectoryModule.new()
@@ -95,7 +97,7 @@ function bulletClass:pickUp()
   if self.state ~= BULLET_STOPPED then return end
 
   -- unregister from collision detection engine
-  self.collisionDetection.remove(self.collisionShape)
+  self.collider:remove(self.collisionShape)
   self.collisionShape = nil
 
   self.timerTTL:stop()
@@ -169,7 +171,7 @@ function bulletClass:update(dt)
 
   -- COLLISION DETECTION: bouncing when meeting map elements
   -- test for collisions
-  local collisions = self.collisionDetection.collisions(self.collisionShape)
+  local collisions = self.collider:collisions(self.collisionShape)
   local isColliding = false
   local sepX, sepY = 0, 0
 

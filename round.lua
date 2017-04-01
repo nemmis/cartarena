@@ -10,27 +10,35 @@ local utils = require 'utils'
 local liveBulletRegistry = require 'liveBulletsRegistry'
 local characterModule = require 'character'
 local playerModule = require 'player'
+local collisionEngineLib = require "dependencies/HC-master"
+local mapModule = require 'map'
 
 ---------------------------------------------
 -- Create a new round
 -- @param characters an array of characters
 -- @param the arena
 ---------------------------------------------
-function roundModule.newRound(characters, arena)
+function roundModule.newRound(characters)
   utils.assertTypeTable(characters)
-  utils.assertTypeTable(arena)
 
   local round = {}
   round.characters = characters
-  round.arena = arena
   round.debug = false
+
+  -- a round has its own collision engine instance
+  round.collider = collisionEngineLib.new()
+
+  -- create a terrain
+  -- TODO in the future a terrain will be created from a Map / Arena (like Characters / Players)
+  -- a terrain is local to a round, an arena is an abstract entity
+  round.terrain = mapModule.newMap(round.collider)
 
   -- creates a local bullet registry for each round
   local bulletRegistry = liveBulletRegistry.newLiveBulletRegistry()
   round.bulletRegistry = bulletRegistry
 
   -- create players from characters, use starting positions of the arena
-  local arenaStartingPosititions = arena.getStartingPositions()
+  local arenaStartingPosititions = round.terrain.getStartingPositions()
   --TODO check that there are enough starting positions
 
   round.players = {}
@@ -42,7 +50,8 @@ function roundModule.newRound(characters, arena)
       startingPosition.theta,
       bulletRegistry,
       character.color,
-      character.gamepad)
+      character.gamepad,
+      round.collider)
     table.insert(round.players, player)
   end
 
@@ -51,6 +60,11 @@ function roundModule.newRound(characters, arena)
   return round
 end
 
+-- TODO destroy a round ? will it automatically be done using garbage collection ?
+function roundClass:destroy()
+  self.collider:resetHash()
+  -- TODO need to clear the shapes of the vehicles and bullets ?
+end
 ------------------------------------------
 -- Indicates that a round is finished
 -- A round is finished when all players
@@ -92,7 +106,7 @@ end
 -----------------------------
 function roundClass:draw()
   -- draw the arena
-  self.arena:draw()
+  self.terrain:draw()
 
   -- draw the players
   for i, player in ipairs(self.players) do

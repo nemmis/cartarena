@@ -7,6 +7,7 @@ It knows a live bullet registry that handles fired bullets.
 
 local vehicleModule = require 'vehicle/vehicle'
 local vehicleInput = require 'vehicleInput'
+local utils = require 'utils'
 
 local playerModule = {}
 local playerClass = {}
@@ -15,9 +16,18 @@ local playerClass = {}
 -- Creates a new player
 -- @param debug is optional
 ------------------------------
-function playerModule.new(x, y, theta, bulletRegistry, color, gamepad, debug)
+function playerModule.new(x, y, theta, bulletRegistry, color, gamepad, collider, debug)
+  utils.assertTypeNumber(x)
+  utils.assertTypeNumber(y)
+  utils.assertTypeNumber(theta)
+  utils.assertTypeTable(bulletRegistry)
+  utils.assertTypeTable(color)
+  utils.assertTypeUserdata(gamepad)
+  utils.assertTypeTable(collider)
+  utils.assertTypeOptionalBoolean(debug)
+
   local debugging = debug or false
-  local vehicle = vehicleModule.new(x, y, theta, bulletRegistry, color, debug)
+  local vehicle = vehicleModule.new(x, y, theta, bulletRegistry, color, collider, debug)
 
   local player = {
     gamepad = gamepad,

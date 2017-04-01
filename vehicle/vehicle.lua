@@ -42,6 +42,7 @@ local bulletModule = require 'bullet'
 local collisionHelpers = require 'collisionHelpers'
 local bulletModule = require 'bullet'
 local liveBulletRegistryModule = require 'liveBulletsRegistry'
+local utils = require 'utils'
 
 local vehicleModule = {}
 
@@ -60,17 +61,10 @@ local INITIAL_BULLET_COUNT = 3
 local vehiclePrototype = {}
 
 --------------------------------------------------
--- Initialize the dependencies of the module
---------------------------------------------------
-function vehicleModule.init(collisionDetectionModuleIn)
-  vehiclePrototype.staticCollisionDetectionModule = collisionDetectionModuleIn
-end
-
---------------------------------------------------
 -- Create a vehicle collision shape
 --------------------------------------------------
-local function newPlayerCollisionShape(cx, cy, radius)
-  local collisionShape = vehiclePrototype.staticCollisionDetectionModule.circle(cx, cy, boundingRadius)
+local function newPlayerCollisionShape(cx, cy, radius, collider)
+  local collisionShape = collider:circle(cx, cy, boundingRadius)
   collisionShape.isAVehicle = true  -- a key to recognize that the collision shape is the one of a vehicle
   return collisionShape
 end
@@ -80,7 +74,14 @@ end
 -- @param color is optional, default white
 -- @param debug is optional
 --------------------------------------------------
-function vehicleModule.new(x0, y0, theta0, bulletRegistry, color, debugging)
+function vehicleModule.new(x0, y0, theta0, bulletRegistry, color, collider, debugging)
+  utils.assertTypeNumber(x0)
+  utils.assertTypeNumber(y0)
+  utils.assertTypeNumber(theta0)
+  utils.assertTypeTable(bulletRegistry)
+  utils.assertTypeTable(color)
+  utils.assertTypeTable(collider)
+  utils.assertTypeOptionalBoolean(debugging)
 
   local debugging = debugging or false
   local playerColor = color or colorModule.getColor(colorModule.WHITE())
@@ -97,7 +98,8 @@ function vehicleModule.new(x0, y0, theta0, bulletRegistry, color, debugging)
     shotRequest = false, -- we assume that there cannot be more than one shot request between two frames
     outOfService = false,
     trajectory = trajectoryModule.new(),
-    bbCollision = newPlayerCollisionShape(x0, y0, boundingRadius),
+    collider = collider,
+    bbCollision = newPlayerCollisionShape(x0, y0, boundingRadius, collider),
     color = playerColor,
     -- collision response type
     collisionResponseType = "separating",
@@ -111,7 +113,7 @@ function vehicleModule.new(x0, y0, theta0, bulletRegistry, color, debugging)
 
   -- add bullets
   for i = 1, INITIAL_BULLET_COUNT do
-    table.insert(vehicle.bullets, bulletModule.newPickedBullet())
+    table.insert(vehicle.bullets, bulletModule.newPickedBullet(collider, debugging))
   end
 
   -- behaviour is defined in the prototype
@@ -249,7 +251,7 @@ end
 --  - the vehicle is out of service
 local function handleVehicleBulletCollisions(vehicle)
 
-  local collisions = vehicle.staticCollisionDetectionModule.collisions(vehicle.bbCollision)
+  local collisions = vehicle.collider:collisions(vehicle.bbCollision)
 
   for otherShape, separatingVector in pairs(collisions) do
     if collisionHelpers.isVehicleBulletCollision(vehicle.bbCollision, otherShape) then
@@ -301,7 +303,7 @@ function vehiclePrototype:update(dt, accelerates, breaks, steers)
   self.bbCollision:moveTo(x1, y1)
   self.bbCollision:setRotation(theta1)
 
-  local collisions = self.staticCollisionDetectionModule.collisions(self.bbCollision)
+  local collisions = self.collider:collisions(self.bbCollision)
 
   -- only consider collisions with map elements
   for shape, separatingVector in pairs(collisions) do
@@ -365,9 +367,9 @@ function vehiclePrototype:draw()
   -- bounding shape
   self.bbCollision:draw()
   local xLocal, yLocal = geometryLib.localToGlobalVector(0, boundingRadius, self.x, self.y, self.theta)
-  love.graphics.setLineWidth(2)
+  --love.graphics.setLineWidth(2)
   love.graphics.line(self.x, self.y, self.x + xLocal, self.y + yLocal)
-  love.graphics.setLineWidth(1)
+  --love.graphics.setLineWidth(1)
 
   -- number of bullets
   love.graphics.print(self:getBulletCount(), self.x + 15, self.y + 15)
