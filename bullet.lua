@@ -1,6 +1,12 @@
--- Bullet
--- Kill players when colliding with them
--- Bounce on map elements
+--[[ Bullet
+
+Kill players when colliding with them
+Bounce on map elements
+A bullet has an owner. The owner changes when a bullet is picked up.
+One use case of the owner is to find out who has shot a bullet.
+
+]]
+
 
 local geometry = require 'geometryLib'
 local color = require 'color'
@@ -26,15 +32,19 @@ end
 
 -----------------------------------------------------
 -- @brief Bullet constructor
+-- @param owner (type character) the owner of a bullet
+-- @param collider  a collision engine instance
 -- @param debug is optional, false by default
 -----------------------------------------------------
-function bulletModule.newPickedBullet(collider, debug)
+function bulletModule.newPickedBullet(owner, collider, debug)
+  utils.assertTypeTable(owner)
   utils.assertTypeTable(collider)
   utils.assertTypeOptionalBoolean(debug)
 
   local debugging = debug or false
 
   local bullet = {
+    owner = owner,
     state = BULLET_PICKED,
     radius = BULLET_RADIUS,
     x = 0,
@@ -90,11 +100,19 @@ function bulletClass:isPickable()
   return self.state == BULLET_STOPPED
 end
 
+--------------------------------
 -- @brief Pick up a bullet
+-- @param newOwner  type character, the new owner of a bullet
 -- state becomes PICKED
-function bulletClass:pickUp()
+-- the ownership changes
+--------------------------------
+function bulletClass:pickUp(newOwner)
+  utils.assertTypeTable(newOwner)
+
   -- a bullet can only be picked if the state is STOPPED
   if self.state ~= BULLET_STOPPED then return end
+
+  self.owner = newOwner
 
   -- unregister from collision detection engine
   self.collider:remove(self.collisionShape)
@@ -209,27 +227,21 @@ end
 
 -- different colors for the different states
 function bulletClass:draw()
-
-  local bulletState = self.state
+  assert(self.state ~= BULLET_PICKED, "Should not attempt to draw a bullet that is picked")
 
   local r,g,b = color.ORANGE()
-  if self.state == BULLET_PICKED then r, g, b = color.GREY()
-  elseif self.state == BULLET_STOPPED then r, g, b = color.GREEN() end
-
+  if self.state == BULLET_STOPPED then
+    r, g, b = color.GREEN()
+  end
   love.graphics.setColor(r, g, b)
 
-  if bulletState == BULLET_PICKED then
-    love.graphics.circle("line", self.x, self.y, self.radius)
-  else
-    self.collisionShape:draw()
-  end
+  self.collisionShape:draw()
 
+  if self.debugging then
+    -- display the owner
+    love.graphics.print(self.owner:getName(), self.x + BULLET_RADIUS, self.y + BULLET_RADIUS)
 
-  love.graphics.setColor(color.GREEN())
-  --love.graphics.line(self.x, self.y, self.x + self.vx, self.y + self.vy)
-
-  if self.debugging
-  then self.trajectory:draw()
+    self.trajectory:draw()
   end
 
 end

@@ -27,7 +27,7 @@ function playerModule.new(character, x, y, theta, bulletRegistry, collider, debu
   utils.assertTypeOptionalBoolean(debug)
 
   local debugging = debug or false
-  local vehicle = vehicleModule.new(x, y, theta, bulletRegistry, character:getColor(), collider, debug)
+  local vehicle = vehicleModule.new(character, x, y, theta, bulletRegistry, collider, debug)
 
   local player = {
     character = character,
@@ -67,7 +67,7 @@ function playerClass:draw()
   if self.debug then
     -- the name of the character
     local x, y = self.vehicle:position()
-    love.graphics.print(self.character:getName(), x + 25, y + 25)
+    love.graphics.print(self.character:getName(), x + 25, y - 25)
   end
 
   self.vehicle:draw()

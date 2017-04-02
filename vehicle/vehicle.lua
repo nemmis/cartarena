@@ -71,23 +71,22 @@ end
 
 --------------------------------------------------
 -- Create a vehicle
--- @param color is optional, default white
 -- @param debug is optional
 --------------------------------------------------
-function vehicleModule.new(x0, y0, theta0, bulletRegistry, color, collider, debugging)
+function vehicleModule.new(character, x0, y0, theta0, bulletRegistry, collider, debugging)
+  utils.assertTypeTable(character)
   utils.assertTypeNumber(x0)
   utils.assertTypeNumber(y0)
   utils.assertTypeNumber(theta0)
   utils.assertTypeTable(bulletRegistry)
-  utils.assertTypeTable(color)
   utils.assertTypeTable(collider)
   utils.assertTypeOptionalBoolean(debugging)
 
   local debugging = debugging or false
-  local playerColor = color or colorModule.getColor(colorModule.WHITE())
 
   -- the instance holds the state
   local vehicle = {
+    character = character,
     x = x0,
     y = y0,
     theta = theta0,
@@ -100,7 +99,7 @@ function vehicleModule.new(x0, y0, theta0, bulletRegistry, color, collider, debu
     trajectory = trajectoryModule.new(),
     collider = collider,
     bbCollision = newPlayerCollisionShape(x0, y0, boundingRadius, collider),
-    color = playerColor,
+    color = character:getColor(),
     -- collision response type
     collisionResponseType = "separating",
     -- sum of all separation vector
@@ -113,7 +112,7 @@ function vehicleModule.new(x0, y0, theta0, bulletRegistry, color, collider, debu
 
   -- add bullets
   for i = 1, INITIAL_BULLET_COUNT do
-    table.insert(vehicle.bullets, bulletModule.newPickedBullet(collider, debugging))
+    table.insert(vehicle.bullets, bulletModule.newPickedBullet(character, collider, debugging))
   end
 
   -- behaviour is defined in the prototype
@@ -227,12 +226,16 @@ local function processShootRequest(vehicle)
   return true
 end
 
+----------------------------------------------------------
 -- @brief pick up a bullet
 -- the bullet must be pickable
 -- remove the bullet from the live bullet registry
 -- add the bullet to the player bullet set
+----------------------------------------------------------
 local function pickUpBullet(vehicle, bullet)
-  bullet:pickUp()
+  utils.assertTypeTable(vehicle)
+  utils.assertTypeTable(bullet)
+  bullet:pickUp(vehicle.character)
   vehicle.bulletRegistry:removePickedBullet(bullet)
   table.insert(vehicle.bullets, bullet)
 end
