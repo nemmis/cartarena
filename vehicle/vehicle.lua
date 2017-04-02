@@ -409,6 +409,13 @@ function vehiclePrototype:draw()
   end
 end
 
+---------------------------------------
+-- Returns the position of a vehicle
+---------------------------------------
+function vehiclePrototype:position()
+  return self.x, self.y
+end
+
 function vehiclePrototype:setDebug(debugging)
   self.debug = debugging
   for _, bullet in pairs(self.bullets) do

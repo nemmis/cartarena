@@ -45,12 +45,11 @@ function roundModule.newRound(characters)
   for index, character in ipairs(characters) do
     local startingPosition = arenaStartingPosititions[index]
     local player = playerModule.new(
+      character,
       startingPosition.x,
       startingPosition.y,
       startingPosition.theta,
       bulletRegistry,
-      character.color,
-      character.gamepad,
       round.collider)
     table.insert(round.players, player)
   end

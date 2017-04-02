@@ -13,7 +13,7 @@ function utils.assertTypeNumber(var)
 end
 
 function utils.assertTypeBoolean(var)
-  assert(type(var) == "number", "Input must be a number but is a " .. type(var))
+  assert(type(var) == "boolean", "Input must be a number but is a " .. type(var))
 end
 
 function utils.assertTypeOptionalBoolean(var)

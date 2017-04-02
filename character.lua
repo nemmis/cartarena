@@ -1,18 +1,26 @@
 --[[
 A character is the identiy of a player.
 It remains the same accross a game.
+It is not a game object in the sense that it is not drawn nor updated.
+Its game object counterpart is the player class.
+
+A character has:
+- a name
+- a visual identity (color, sprite)
+- a gamepad
 ]]
 
 local utils = require 'utils'
 local characterModule = {}
 local characterClass = {}
 
+---------------------------------
+-- Create a new character
+---------------------------------
 function characterModule.newCharacter(name, color, gamepad)
-  assert(name, "The character must have a name")
   utils.assertTypeString(name)
-  assert(color, "The character must have a color")
   utils.assertTypeTable(color)
-  assert(gamepad, "The character must have a gamepad")
+  utils.assertTypeUserdata(gamepad)
 
   local character = {}
   character.name = name
@@ -22,6 +30,18 @@ function characterModule.newCharacter(name, color, gamepad)
   setmetatable(character, {__index = characterClass})
 
   return character
+end
+
+function characterClass:getName()
+  return self.name
+end
+
+function characterClass:getColor()
+  return self.color
+end
+
+function characterClass:getGamepad()
+  return self.gamepad
 end
 
 return characterModule;
