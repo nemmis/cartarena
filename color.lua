@@ -1,3 +1,5 @@
+local utils = require 'utils'
+
 local colors = {}
 
 function colors.TURQUESE()
@@ -30,10 +32,14 @@ function colors.GREY(g)
 end
 
 function colors.getColor(r, g, b)
+  utils.assertTypeNumber(r)
+  utils.assertTypeNumber(g)
+  utils.assertTypeNumber(b)
   return {r = r, g = g, b = b}
 end
 
 function colors.getRGB(color)
+  utils.assertTypeTable(color)
   return color.r, color.g, color.b
 end
 

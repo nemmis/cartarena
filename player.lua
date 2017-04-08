@@ -60,6 +60,10 @@ function playerClass:update(dt)
 
 end
 
+function playerClass:getVehicle()
+  return self.vehicle
+end
+
 ----------------------
 -- Draw the player
 ----------------------

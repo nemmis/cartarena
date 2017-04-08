@@ -18,6 +18,7 @@ local colors = require 'color'
 local timerModule = require 'timer'
 local characterModule = require 'character'
 local roundModule = require 'round'
+local scoreModule = require 'score'
 
 local debuggingEnabled = false
 
@@ -28,16 +29,24 @@ local secondCharacter
 local map
 local round
 local timer
+local gameScore
 
 function love.load()
   -- input
   gamepad = love.joystick.getJoysticks()[1]
   gamepad2 = love.joystick.getJoysticks()[2]
 
+
+  -- Characters
   -- each player will choose his character
   firstCharacter = characterModule.newCharacter("Bob", colors.getColor(colors.PURPLE()), gamepad)
   secondCharacter = characterModule.newCharacter("Patrick", colors.getColor(colors.GREEN()), gamepad2)
+
+  -- Round
   round = roundModule.newRound({firstCharacter, secondCharacter})
+
+  -- Game score
+  gameScore = scoreModule.newScore({firstCharacter, secondCharacter})
 
   -- graphics settings
   love.graphics.setLineStyle('smooth')
@@ -69,8 +78,11 @@ function love.draw()
     timer:start()
     love.graphics.print(string.format("Round is finished, starting new one in %0.2f seconds !", timer:getRemainingMs() / 1000), 50, 50)
     if timer:isElapsed() then
-      round:destroy()
-      round = roundModule.newRound({firstCharacter, secondCharacter})
+      -- start a new round
+
+      gameScore:add(round:getScore()) -- merge the score
+      round:destroy() -- destroy the round
+      round = roundModule.newRound({firstCharacter, secondCharacter}) -- create a new round
       timer:stop()
       timer:reset()
     end
@@ -79,6 +91,8 @@ function love.draw()
   end
 
   round:draw()
+
+  gameScore:draw({ x = 400, y = 20}, colors.getColor(colors.GREEN()))
 
 end
 

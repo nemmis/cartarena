@@ -1,7 +1,15 @@
 local utils = {}
 
+function utils.isTable(var)
+  return type(var) == "table"
+end
+
+function utils.isFunction(var)
+  return type(var) == "function"
+end
+
 function utils.assertTypeTable(var)
-  assert(type(var) == "table", "Input must be a table but is a " .. type(var))
+  assert(utils.isTable(var), "Input must be a table but is a " .. type(var))
 end
 
 function utils.assertTypeString(var)
@@ -23,6 +31,11 @@ end
 
 function utils.assertTypeUserdata(var)
   assert(type(var) == "userdata", "Input must be userdata but is a " .. type(var))
+end
+
+function utils.assertTypeFunction(var, msg)
+  local assertMsg = msg or string.format("Input must be function but is a %s.", type(var))
+  assert(utils.isFunction(var), assertMsg)
 end
 
 return utils

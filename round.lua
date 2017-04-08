@@ -12,18 +12,30 @@ local characterModule = require 'character'
 local playerModule = require 'player'
 local collisionEngineLib = require "dependencies/HC-master"
 local mapModule = require 'map'
+local scoreModule = require 'score'
+local colorModule = require 'color'
+
+local function registerScoreIsHitEventListenerToVehicles(score, players)
+  utils.assertTypeTable(score)
+  utils.assertTypeTable(players)
+
+  for _, player in ipairs(players) do
+    player:getVehicle():registerIsHitEventListener(score)
+  end
+end
 
 ---------------------------------------------
 -- Create a new round
 -- @param characters an array of characters
--- @param the arena
+-- @param score the current game score
 ---------------------------------------------
 function roundModule.newRound(characters)
   utils.assertTypeTable(characters)
 
   local round = {}
-  round.characters = characters
   round.debug = false
+
+  round.characters = characters
 
   -- a round has its own collision engine instance
   round.collider = collisionEngineLib.new()
@@ -41,6 +53,7 @@ function roundModule.newRound(characters)
   local arenaStartingPosititions = round.terrain.getStartingPositions()
   --TODO check that there are enough starting positions
 
+  -- Players
   round.players = {}
   for index, character in ipairs(characters) do
     local startingPosition = arenaStartingPosititions[index]
@@ -53,6 +66,10 @@ function roundModule.newRound(characters)
       round.collider)
     table.insert(round.players, player)
   end
+
+  -- Score
+  round.score = scoreModule.newScore(characters)
+  registerScoreIsHitEventListenerToVehicles(round.score, round.players)
 
   setmetatable(round, {__index = roundClass})
 
@@ -78,6 +95,10 @@ function roundClass:isFinished()
   end
   -- all the player might have already lost (two remaining players might loose during the same update frame)
   return remainingPlayersCount < 2
+end
+
+function roundClass:getScore()
+  return self.score
 end
 
 --------------------------------
@@ -114,6 +135,8 @@ function roundClass:draw()
 
   -- update the bullet registry
   self.bulletRegistry:draw()
+
+  self.score:draw({x = 500, y = 20}, colorModule.getColor(colorModule.ORANGE()))
 end
 
 ---------------------------------

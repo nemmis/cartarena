@@ -225,6 +225,15 @@ function bulletClass:update(dt)
 
 end
 
+-----------------------------------------
+-- Get the owner of a bullet
+-- @return owner, type Character
+-----------------------------------------
+function bulletClass:getOwner()
+  utils.assertTypeTable(self.owner)
+  return self.owner
+end
+
 -- different colors for the different states
 function bulletClass:draw()
   assert(self.state ~= BULLET_PICKED, "Should not attempt to draw a bullet that is picked")

@@ -1,5 +1,9 @@
 --[[
 
+A vehicle
+
+- knows a set of HitEventListeners that have registered for HitEvents
+
 = Driving requirements
 
 - Player can accelerate, break, steer (right / left)
@@ -26,6 +30,7 @@ a bit rough, works with a rectangle as we prevent illegal states to happen
 - the player can pick up as many bullets as possible
 
 == Being hit
+- when a player is hit by a bullet it sends a HitEvent to all its HitEventsListeners
 - a player is eliminated when its vehicle is hit
 - a vehicle can be hit by its own bullets
 - a bullet can hit several vehicles, it does not bounce on the vehicle it hits (would it be more consistent to bounce ?)
@@ -43,6 +48,7 @@ local collisionHelpers = require 'collisionHelpers'
 local bulletModule = require 'bullet'
 local liveBulletRegistryModule = require 'liveBulletsRegistry'
 local utils = require 'utils'
+local isHitEventModule = require 'isHitEvent'
 
 local vehicleModule = {}
 
@@ -96,6 +102,7 @@ function vehicleModule.new(character, x0, y0, theta0, bulletRegistry, collider, 
     bulletRegistry = bulletRegistry,
     shotRequest = false, -- we assume that there cannot be more than one shot request between two frames
     outOfService = false,
+    isHitEventListeners = {}, -- an array of hit event listeners
     trajectory = trajectoryModule.new(),
     collider = collider,
     bbCollision = newPlayerCollisionShape(x0, y0, boundingRadius, collider),
@@ -247,11 +254,29 @@ function vehiclePrototype:isOutOfService()
   return self.outOfService
 end
 
+---------------------------------------------------
+-- Send a hit event to all isHitEventListeners
+---------------------------------------------------
+local function sendHitEvent(vehicle, bullet)
+  utils.assertTypeTable(vehicle)
+  utils.assertTypeTable(bullet)
+
+  local target = vehicle.character
+  local shooter = bullet:getOwner()
+  local isHitEvent = isHitEventModule.newIsHitEvent(target, shooter)
+
+  for _, listener in ipairs(vehicle.isHitEventListeners) do
+    listener:processIsHitEvent(isHitEvent)
+  end
+end
+
+----------------------------------------------------------------------------
 -- @brief Handles vehicle vs bullet collisions
 -- @return a boolean that indicates if the vehicle is out of service
 -- A vehicle vs bullet collision results in either:
 --  - the bullet being picked up by the vehicle
---  - the vehicle is out of service
+--  - the vehicle is out of service and a HitEvent is sent
+----------------------------------------------------------------------------
 local function handleVehicleBulletCollisions(vehicle)
 
   local collisions = vehicle.collider:collisions(vehicle.bbCollision)
@@ -261,9 +286,11 @@ local function handleVehicleBulletCollisions(vehicle)
       local bullet = otherShape.bullet
       -- either the vehicle can pick up the bullet or it is out-of-service
       if bullet:isPickable() then
+        -- TODO return the bullet outside of the function
         pickUpBullet(vehicle, bullet)
         return false
       else
+        sendHitEvent(vehicle, bullet)
         return true
       end
     end
@@ -357,7 +384,15 @@ function vehiclePrototype:update(dt, accelerates, breaks, steers)
     processShootRequest(self)
     self.shotRequest = false
   end
+end
 
+--------------------------------------
+-- Register a HitEventListener
+-- @param an object that has a function called processHitEvent with prototype (target : Character, shooter : Character)
+--------------------------------------
+function vehiclePrototype:registerIsHitEventListener(isHitEventListener)
+  isHitEventModule.assertTypeIsHitEventListener(isHitEventListener)
+  table.insert(self.isHitEventListeners, isHitEventListener)
 end
 
 function vehiclePrototype:draw()
