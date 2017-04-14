@@ -81,9 +81,10 @@ function roundClass:destroy()
   self.collider:resetHash()
   -- TODO need to clear the shapes of the vehicles and bullets ?
 end
+
 ------------------------------------------
 -- Indicates that a round is finished
--- A round is finished when all players
+-- A round is finished when there is one or zero player still alive
 ------------------------------------------
 function roundClass:isFinished()
   local players = self.players
@@ -150,7 +151,7 @@ function roundClass:setDebug(debug)
   self.bulletRegistry:setDebug(debug)
 end
 
-function roundClass:gamepadPressed(gamepad, button)
+function roundClass:gamepadpressed(gamepad, button)
   -- forward the event to all players
   for _, player in ipairs(self.players) do
     player:gamepadPressed(gamepad, button)

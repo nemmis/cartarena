@@ -17,102 +17,70 @@ A game is a serie of battle royal.
 ]]
 
 local colors = require 'color'
-local timerModule = require 'timer'
-local characterModule = require 'character'
-local roundModule = require 'round'
-local scoreModule = require 'score'
+local gameStateSchedulerModule = require 'gameStateScheduler'
+local welcomeGameStateModule = require 'welcomeGameState'
+local roundGameStateModule = require 'roundGameState'
+local scoreGameStateModule = require 'scoreGameState'
 
 local debuggingEnabled = false
 
-local gamepad
-local gamepad2
-local firstCharacter
-local secondCharacter
-local map
-local round
-local timer
-local gameScore
+local gameStateMetadata
+local gameStateScheduler
+
 local maxMemoryUsage = 0
 
 function love.load()
-  -- input
-  gamepad = love.joystick.getJoysticks()[1]
-  gamepad2 = love.joystick.getJoysticks()[2]
 
+  -- game state scheduler
+  gameStateScheduler = gameStateSchedulerModule.newGameStateScheduler()
 
-  -- Characters
-  -- each player will choose his character
-  firstCharacter = characterModule.newCharacter("Bob", colors.getColor(colors.PURPLE()), gamepad)
-  secondCharacter = characterModule.newCharacter("Patrick", colors.getColor(colors.GREEN()), gamepad2)
+  -- game state metadata
+  gameStateMetadata = {}
+  gameStateMetadata.gamepads = {love.joystick.getJoysticks()[1], love.joystick.getJoysticks()[2]}
 
-  -- Round
-  round = roundModule.newRound({firstCharacter, secondCharacter})
+  -- create the game state graph nodes
+  local welcomeGameState = welcomeGameStateModule.newWelcomeGameState(gameStateScheduler)
+  local roundGameState = roundGameStateModule.newRoundGameState(gameStateScheduler)
+  local scoreGameState = scoreGameStateModule.newScoreGameState(gameStateScheduler)
 
-  -- Game score
-  gameScore = scoreModule.newScore({firstCharacter, secondCharacter})
+  -- wire the game states nodes
+  welcomeGameState:addRoundGameState(roundGameState)
+  roundGameState:addScoreGameState(scoreGameState)
+  scoreGameState:addRoundGameState(roundGameState)
+  scoreGameState:addWelcomeGameState(welcomeGameState)
+
+  -- start the game
+  gameStateScheduler:schedule(welcomeGameState, gameStateMetadata)
 
   -- graphics settings
   love.graphics.setLineStyle('smooth')
   love.graphics.setLineWidth(3)
-
-  timer = timerModule.new(3000)
 end
 
 
 function love.update(dt)
 
 	-- ends the game
-	if gamepad:isGamepadDown('back') or gamepad2:isGamepadDown('back') or love.keyboard.isDown('escape')
+	if love.keyboard.isDown('escape')
 		then love.event.quit()
 	end
 
-  timer:update(dt)
-  round:update(dt)
+  gameStateScheduler:getCurrentGameState():update(dt)
 
 end
 
-function love.draw()
-
+local function drawPerformanceData()
   love.graphics.setColor(colors.WHITE())
   love.graphics.print(string.format("FPS (f/sec): %d", love.timer.getFPS()), 15, 15)
   maxMemoryUsage = math.max(maxMemoryUsage, collectgarbage("count"))
   love.graphics.print(string.format("Mem (Kb): max %d current %d", maxMemoryUsage, collectgarbage("count")), 15, 30)
-
-  -- start a new round when the round is finished
-  if round:isFinished() then
-    timer:start()
-    love.graphics.print(string.format("Round is finished, starting new one in %0.2f seconds !", timer:getRemainingMs() / 1000), 15, 45)
-    if timer:isElapsed() then
-      -- start a new round
-
-      gameScore:add(round:getScore()) -- merge the score
-      round:destroy() -- destroy the round
-      round = roundModule.newRound({firstCharacter, secondCharacter}) -- create a new round
-      timer:stop()
-      timer:reset()
-    end
-  else
-    love.graphics.print("Round is running !", 15, 45)
-  end
-
-  round:draw()
-
-  gameScore:draw({ x = 400, y = 20}, colors.getColor(colors.GREEN()))
-
 end
 
-function love.gamepadpressed( joystick, button )
-  -- any gamepad
-
-  -- toggle debug drawing
-  if button == 'start'
-  then debuggingEnabled = not debuggingEnabled
-      round:setDebug(debuggingEnabled)
-  end
-
-  round:gamepadPressed(joystick, button)
+function love.draw()
+  drawPerformanceData()
+  gameStateScheduler:getCurrentGameState():draw()
 end
 
-function love.keypressed( key, scancode, isrepeat )
-	print("Key" .. key .. " has just been pressed")
+function love.gamepadpressed(joystick, button)
+  gameStateScheduler:gamepadpressed(joystick, button)
 end

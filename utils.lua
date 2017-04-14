@@ -8,12 +8,16 @@ function utils.isFunction(var)
   return type(var) == "function"
 end
 
+function utils.isString(var)
+  return type(var) == "string"
+end
+
 function utils.assertTypeTable(var)
   assert(utils.isTable(var), "Input must be a table but is a " .. type(var))
 end
 
 function utils.assertTypeString(var)
-  assert(type(var) == "string", "Input must be a string but is a " .. type(var))
+  assert(utils.isString(var), "Input must be a string but is a " .. type(var))
 end
 
 function utils.assertTypeNumber(var)
