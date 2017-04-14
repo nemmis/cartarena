@@ -6,6 +6,8 @@
 --------------------------------------------
 The driving and shooting party game.
 
+A game is a serie of battle royal.
+
 -- press 'start' to toggle debug mode
 -- press 'back' to quit the game
 -- press 'A' to accelerate
@@ -30,6 +32,7 @@ local map
 local round
 local timer
 local gameScore
+local maxMemoryUsage = 0
 
 function love.load()
   -- input
@@ -71,12 +74,14 @@ end
 function love.draw()
 
   love.graphics.setColor(colors.WHITE())
-  love.graphics.print("FPS: " .. love.timer.getFPS(), 10, 10)
+  love.graphics.print(string.format("FPS (f/sec): %d", love.timer.getFPS()), 15, 15)
+  maxMemoryUsage = math.max(maxMemoryUsage, collectgarbage("count"))
+  love.graphics.print(string.format("Mem (Kb): max %d current %d", maxMemoryUsage, collectgarbage("count")), 15, 30)
 
   -- start a new round when the round is finished
   if round:isFinished() then
     timer:start()
-    love.graphics.print(string.format("Round is finished, starting new one in %0.2f seconds !", timer:getRemainingMs() / 1000), 50, 50)
+    love.graphics.print(string.format("Round is finished, starting new one in %0.2f seconds !", timer:getRemainingMs() / 1000), 15, 45)
     if timer:isElapsed() then
       -- start a new round
 
@@ -87,7 +92,7 @@ function love.draw()
       timer:reset()
     end
   else
-    love.graphics.print("Round is running !", 50, 50)
+    love.graphics.print("Round is running !", 15, 45)
   end
 
   round:draw()
