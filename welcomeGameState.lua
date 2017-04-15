@@ -8,6 +8,7 @@ Connected to the RoundGameState
 ]]
 
 local utils = require 'utils'
+local graphicsHelpers = require 'graphicsHelpers'
 local colors = require 'color'
 local gameStateModule = require 'gameState'
 local characterModule = require 'character'
@@ -82,8 +83,13 @@ function welcomeGameStateClass:update(dt)
 end
 
 function welcomeGameStateClass:draw()
-  love.graphics.print("Cartarena, welcome !", 200, 200)
-  love.graphics.print("Press 'a' to start a new game", 200, 220)
+  graphicsHelpers.inWhite()
+  graphicsHelpers.bigPrint()
+  local lines = {
+    "Cartarena",
+    "Press 'a' to start a new game"
+  }
+  graphicsHelpers.printCentered(lines)
 end
 
 return welcomeGameStateModule

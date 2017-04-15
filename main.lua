@@ -16,7 +16,7 @@ A game is a serie of battle royal.
 -- press the right bumper to shoot
 ]]
 
-local colors = require 'color'
+local graphicsHelpers = require 'graphicsHelpers'
 local gameStateSchedulerModule = require 'gameStateScheduler'
 local welcomeGameStateModule = require 'welcomeGameState'
 local roundGameStateModule = require 'roundGameState'
@@ -30,6 +30,11 @@ local gameStateScheduler
 local maxMemoryUsage = 0
 
 function love.load()
+
+  -- log version information
+  local major, minor, revision, codename = love.getVersion()
+  print(string.format("Love2d version: %d.%d.%d - %s", major, minor, revision, codename))
+  print(string.format("lua version: %s",_VERSION))
 
   -- game state scheduler
   gameStateScheduler = gameStateSchedulerModule.newGameStateScheduler()
@@ -70,10 +75,14 @@ function love.update(dt)
 end
 
 local function drawPerformanceData()
-  love.graphics.setColor(colors.WHITE())
-  love.graphics.print(string.format("FPS (f/sec): %d", love.timer.getFPS()), 15, 15)
+  graphicsHelpers.smallPrint()
+  graphicsHelpers.inWhite()
   maxMemoryUsage = math.max(maxMemoryUsage, collectgarbage("count"))
-  love.graphics.print(string.format("Mem (Kb): max %d current %d", maxMemoryUsage, collectgarbage("count")), 15, 30)
+  local lines = {
+    string.format("FPS (f/sec): %d", love.timer.getFPS()),
+    string.format("Mem (Kb): max %d current %d", maxMemoryUsage, collectgarbage("count"))
+  }
+  graphicsHelpers.printLines(lines, 15, 15)
 end
 
 function love.draw()
