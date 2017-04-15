@@ -1,6 +1,9 @@
 --[[
 A round is a battle royal between 2 or more players in a given arena.
 
+A round starts with a countdown animation and ends with a final animation.
+
+The players can only move after the initial countdown.
 ]]
 
 local roundModule = {}
@@ -14,6 +17,8 @@ local collisionEngineLib = require "dependencies/HC-master"
 local mapModule = require 'map'
 local scoreModule = require 'score'
 local colorModule = require 'color'
+local countdownAnimationModule = require 'countdownAnimation'
+local postRoundAnimationModule = require 'postRoundAnimation'
 
 local function registerScoreIsHitEventListenerToVehicles(score, players)
   utils.assertTypeTable(score)
@@ -71,6 +76,13 @@ function roundModule.newRound(characters)
   round.score = scoreModule.newScore(characters)
   registerScoreIsHitEventListenerToVehicles(round.score, round.players)
 
+  -- Pre-round animation: countdown
+  round.countdownAnimation = countdownAnimationModule.newCountdownAnimation()
+  round.countdownAnimation:start()
+
+  -- Post-round animation
+  round.postRoundAnimation = postRoundAnimationModule.newPostRoundAnimation()
+
   setmetatable(round, {__index = roundClass})
 
   return round
@@ -86,16 +98,24 @@ end
 -- Indicates that a round is finished
 -- A round is finished when there is one or zero player still alive
 ------------------------------------------
-function roundClass:isFinished()
-  local players = self.players
+local function getNumberOfRemainingPlayers(round)
+  local players = round.players
   local remainingPlayersCount = 0
   for i, player in ipairs(players) do
     if not player:hasLost() then
       remainingPlayersCount = remainingPlayersCount + 1
     end
   end
-  -- all the player might have already lost (two remaining players might loose during the same update frame)
-  return remainingPlayersCount < 2
+  return remainingPlayersCount
+end
+
+------------------------------------------
+-- Indicates that a round is finished
+-- A round is finished when the post round animation is finished
+-- The animation is triggered when one or zero player are still alive
+------------------------------------------
+function roundClass:isFinished()
+  return self.postRoundAnimation:isFinished()
 end
 
 function roundClass:getScore()
@@ -111,21 +131,38 @@ end
 -- Thins to keep in mind: when a player shoots a bullet at high speed, they should not collide at the next frame if there is no other obstacles
 --------------------------------
 function roundClass:update(dt)
-  -- update the players
-  for i, player in ipairs(self.players) do
-    player:update(dt)
+  -- pre-round animation
+  self.countdownAnimation:update(dt)
+
+  -- post round animation
+  self.postRoundAnimation:update(dt)
+
+  -- update the players, only when the countdown animation is finished
+  -- TODO could disable the input and re-enable them using a callback when the animation is finished
+  if self.countdownAnimation:roundCanStart() then
+    for i, player in ipairs(self.players) do
+      player:update(dt)
+    end
   end
 
   -- update the bullet registry
   self.bulletRegistry:update(dt)
 
   -- no need to update the arena
+
+  if getNumberOfRemainingPlayers(self) < 2 then
+    self.postRoundAnimation:start()
+  end
+
 end
 
 -----------------------------
 -- Draw the round
 -----------------------------
 function roundClass:draw()
+  self.countdownAnimation:draw()
+  self.postRoundAnimation:draw()
+
   -- draw the arena
   self.terrain:draw()
 
@@ -152,9 +189,12 @@ function roundClass:setDebug(debug)
 end
 
 function roundClass:gamepadpressed(gamepad, button)
-  -- forward the event to all players
-  for _, player in ipairs(self.players) do
-    player:gamepadPressed(gamepad, button)
+  -- only forward input events to players when the countdown animation is finished
+  if self.countdownAnimation:roundCanStart() then
+    -- forward the event to all players
+    for _, player in ipairs(self.players) do
+      player:gamepadPressed(gamepad, button)
+    end
   end
 end
 

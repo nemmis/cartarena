@@ -27,6 +27,11 @@ function timerClass:update(dt)
   if self.runs then
     self.elapsedMs = self.elapsedMs + dt * 1000
   end
+
+  -- stop the timer when the time is elapsed
+  if self:isElapsed() then
+    self:stop()
+  end
 end
 
 function timerClass:isElapsed()
@@ -43,6 +48,10 @@ function timerClass:getRemainingMs()
   else
     return 0
   end
+end
+
+function timerClass:isRunning()
+  return self.runs
 end
 
 return timerModule

@@ -48,6 +48,7 @@ local collisionHelpers = require 'collisionHelpers'
 local bulletModule = require 'bullet'
 local liveBulletRegistryModule = require 'liveBulletsRegistry'
 local utils = require 'utils'
+local graphicsHelpers = require 'graphicsHelpers'
 local isHitEventModule = require 'isHitEvent'
 
 local vehicleModule = {}
@@ -397,6 +398,8 @@ end
 
 function vehiclePrototype:draw()
   --TODO use transformation push / pop
+
+  graphicsHelpers.smallPrint()
 
   -- draw player
   love.graphics.setColor(colorModule.getRGB(self.color))
