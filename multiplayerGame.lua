@@ -26,22 +26,23 @@ local gameClass = {}
 local MIN_NUMBER_PLAYERS = 2
 local MAX_NUMBER_PLAYERS = 4
 
------------------------------
+-----------------------------------
 -- Creates a new multiplayer game
------------------------------
-function gameModule.newGame(characters, maxNumberOfRounds)
+-----------------------------------
+function gameModule.newGame(characters, targetScore, maxNumberOfRounds)
   utils.assertTypeTable(characters)
   assert(#characters >= MIN_NUMBER_PLAYERS, string.format("A game must have at least %s players", MIN_NUMBER_PLAYERS))
   assert(#characters <= MAX_NUMBER_PLAYERS, string.format("A game must have at most %s players", MAX_NUMBER_PLAYERS))
 
-  utils.assertTypeNumber(maxNumberOfRounds)
-  assert(maxNumberOfRounds > 0, "The target score must be strictly positive")
+  utils.assertTypeStrictlyPositiveNumber(targetScore)
+  utils.assertTypeStrictlyPositiveNumber(maxNumberOfRounds)
 
   local game = {}
   game.characters = characters
   game.numberOfRounds = 0
   game.maxNumberOfRounds = maxNumberOfRounds
   game.score = scoreModule.newScore(characters)
+  game.targetScore = targetScore
 
   setmetatable(game, {__index = gameClass})
   return game
@@ -58,7 +59,10 @@ end
 -- - the maximum number of rounds is reached
 ---------------------------------
 function gameClass:isFinished()
-  return self.numberOfRounds >= self.maxNumberOfRounds
+  local maxNumberOfRoundsReached = self.numberOfRounds >= self.maxNumberOfRounds
+  local targetScoreReached = self.score:hasReachTargetScore(self.targetScore)
+
+  return targetScoreReached or maxNumberOfRoundsReached
 end
 
 -- return a new round and increment number of round by one
@@ -69,6 +73,18 @@ end
 
 function gameClass:getScore()
   return self.score
+end
+
+function gameClass:getTargetScore()
+  return self.targetScore
+end
+
+function gameClass:getRoundCount()
+  return self.numberOfRounds
+end
+
+function gameClass:getMaxRoundCount()
+  return self.maxNumberOfRounds
 end
 
 

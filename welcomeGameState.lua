@@ -19,13 +19,11 @@ local welcomeGameStateClass = {}
 
 local GAME_STATE_ROUND_KEY = "toGameStateRound"
 
--- TODO create own game state metadata class
-
 function welcomeGameStateModule.newWelcomeGameState(gameStateScheduler)
   utils.assertTypeTable(gameStateScheduler)
 
   local welcome = {}
-  welcome.nextGameStates = {} -- a table 'name' -> gameState
+  welcome.nextGameStates = {}
   welcome.gameStateScheduler = gameStateScheduler
   welcome.gameStateMetadata = {}
 
@@ -56,12 +54,13 @@ local function switchToRoundGameState(self)
   -- Characters, will be available from the CharacterSelectionGameState in the future
   local gamepad1 = metadata.gamepads[1]
   local gamepad2 = metadata.gamepads[2]
-  local firstCharacter = characterModule.newCharacter("Player_1", colors.getColor(colors.PURPLE()), gamepad1)
-  local secondCharacter = characterModule.newCharacter("Player_2", colors.getColor(colors.GREEN()), gamepad2)
+  local firstCharacter = characterModule.newCharacter("Alice", colors.getColor(colors.PURPLE()), gamepad1)
+  local secondCharacter = characterModule.newCharacter("Bob", colors.getColor(colors.GREEN()), gamepad2)
 
   -- Game
-  local maxNumberOfRounds = 3
-  local multiplayerGame = multiplayerGameModule.newGame({firstCharacter, secondCharacter}, maxNumberOfRounds)
+  local maxNumberOfRounds = 10
+  local targetScore = 3
+  local multiplayerGame = multiplayerGameModule.newGame({firstCharacter, secondCharacter}, targetScore, maxNumberOfRounds)
 
   -- fill the metadata
   metadata.characters = {firstCharacter, secondCharacter}

@@ -174,7 +174,7 @@ function roundClass:draw()
   -- update the bullet registry
   self.bulletRegistry:draw()
 
-  self.score:draw({x = 500, y = 20}, colorModule.getColor(colorModule.ORANGE()))
+  self.score:draw(500, 20)
 end
 
 ---------------------------------

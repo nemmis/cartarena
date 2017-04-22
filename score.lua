@@ -15,6 +15,7 @@ This way, a player cannot simply hit himself if only two players remain and one 
 
 local utils = require 'utils'
 local colors = require 'color'
+local graphicsHelpers = require 'graphicsHelpers'
 
 local scoreModule = {}
 local scoreClass = {}
@@ -70,18 +71,56 @@ function scoreClass:add(otherScore)
 
 end
 
-function scoreClass:draw(offset, color)
-  utils.assertTypeTable(color)
-
-  local offset = offset or {x = 0, y = 0}
-
-  love.graphics.setColor(colors.getRGB(color))
-
-  local i = 0
-  for character, score in pairs(self) do
-    love.graphics.print(string.format('%s : %d', character:getName(), score), offset.x, offset.y + i * 10)
-    i = i + 1
+function scoreClass:hasReachTargetScore(targetScore)
+  utils.assertTypeStrictlyPositiveNumber(targetScore)
+  for _, score in pairs(self) do
+    if score >= targetScore then
+      return true
+    end
   end
+
+  return false
+end
+
+-- @return an array of characters
+function scoreClass:getLeaders()
+  local leaders = {}
+  local maxScore = 0
+  for _, score in pairs(self:getScoreData()) do
+    maxScore = math.max(score, maxScore)
+  end
+
+  for character, score in pairs(self:getScoreData()) do
+    if score == maxScore then
+      table.insert(leaders, character)
+    end
+  end
+
+  assert(#leaders > 0, "There must be at least one leader")
+  return leaders
+end
+
+-- @return {character : score}
+function scoreClass:getScoreData()
+  -- currently the same as the object
+  return self
+end
+
+function scoreClass:draw(x, y)
+  --TODO optionally set font size and color(s)
+  utils.assertTypeTable(self)
+  utils.assertTypeNumber(x)
+  utils.assertTypeNumber(y)
+
+  local scoreData = self:getScoreData()
+
+  local lines = {}
+  for character, score in pairs(scoreData) do
+      local newLine = string.format("%s : %d points", character:getName(), score)
+      table.insert(lines, newLine)
+  end
+
+  return graphicsHelpers.printLines(lines, x, y)
 end
 
 return scoreModule

@@ -12,6 +12,14 @@ function utils.isString(var)
   return type(var) == "string"
 end
 
+function utils.isNumber(var)
+  return type(var) == "number"
+end
+
+function utils.isStrictlyPositiveNumber(var)
+  return utils.isNumber(var) and var > 0
+end
+
 function utils.assertTypeTable(var)
   assert(utils.isTable(var), "Input must be a table but is a " .. type(var))
 end
@@ -21,7 +29,11 @@ function utils.assertTypeString(var)
 end
 
 function utils.assertTypeNumber(var)
-  assert(type(var) == "number", "Input must be a number but is a " .. type(var))
+  assert(utils.isNumber(var), "Input must be a number but is a " .. type(var))
+end
+
+function utils.assertTypeStrictlyPositiveNumber(var)
+  assert(utils.isStrictlyPositiveNumber(var), string.format("Input must be a strictly positive number but: type=%s, value=%s", type(var), var))
 end
 
 function utils.assertTypeBoolean(var)

@@ -11,6 +11,7 @@ Makes use of the field 'game' in the metadata
 ]]
 
 local utils = require 'utils'
+local graphicsHelpers = require 'graphicsHelpers'
 local colors = require 'color'
 local gameStateModule = require 'gameState'
 local roundModule = require 'round'
@@ -83,17 +84,45 @@ function scoreGameStateClass:update(dt)
   -- nothing to update
 end
 
+local function drawWinningCase(score, x, y)
+--TODO differentiate when the maximum number of rounds is reached or the target score is reached ?
+
+  local leaders = score:getLeaders()
+
+  if #leaders > 1 then
+    y = y + graphicsHelpers.printLines({"It's a draw !"}, x, y)
+  end
+
+  local winnerString = ""
+  for _, leader in ipairs(leaders) do
+    winnerString = winnerString .. string.format("%s, ", leader:getName())
+  end
+
+  winnerString = winnerString .. "wins !"
+
+  y = y + graphicsHelpers.printLines({winnerString}, x, y)
+  y = y + graphicsHelpers.printLines({"Press 'a' to come back to the welcome screen"}, x, y)
+end
+
+
 function scoreGameStateClass:draw()
+  graphicsHelpers.smallPrint()
   local game = self.gameStateMetadata.game
+  local score = game:getScore()
+
+  local x = 200
+  local y = 200
+  local lines = {
+    string.format("Multiplayer game (%d / %d rounds)", game:getRoundCount(), game:getMaxRoundCount()),
+    string.format("First to %d ! ", game:getTargetScore())
+  }
+  y = y + graphicsHelpers.printLines(lines, x, y)
+  y = y + score:draw(x, y)
 
   if not game:isFinished() then
-    love.graphics.print("Current score", 200, 200)
-    game:getScore():draw({ x = 200, y = 220}, colors.getColor(colors.GREEN()))
-    love.graphics.print("Press 'a' to continue to the next round", 200, 240)
+    graphicsHelpers.printLines({"No winner yet, press 'a' to continue to the next round"}, x, y)
   else
-    love.graphics.print("We have a winner !", 200, 200)
-    game:getScore():draw({ x = 200, y = 220}, colors.getColor(colors.GREEN()))
-    love.graphics.print("Press 'a' to come back to the welcome screen", 200, 240)
+    drawWinningCase(score, x, y)
   end
 
 end
