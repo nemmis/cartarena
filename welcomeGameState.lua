@@ -55,7 +55,7 @@ local function switchToRoundGameState(self)
   local gamepad1 = metadata.gamepads[1]
   local gamepad2 = metadata.gamepads[2]
   local firstCharacter = characterModule.newCharacter("Alice", colors.getColor(colors.PURPLE()), gamepad1)
-  local secondCharacter = characterModule.newCharacter("Bob", colors.getColor(colors.GREEN()), gamepad2)
+  local secondCharacter = characterModule.newCharacter("Bob", colors.getColor(colors.ORANGE()), gamepad2)
 
   -- Game
   local maxNumberOfRounds = 10

@@ -5,6 +5,8 @@ It knows a live bullet registry that handles fired bullets.
 
 ]]
 
+local graphicsHelpers = require 'graphicsHelpers'
+local colors = require 'color'
 local vehicleModule = require 'vehicle/vehicle'
 local vehicleInput = require 'vehicleInput'
 local character = require 'character'
@@ -68,6 +70,10 @@ end
 -- Draw the player
 ----------------------
 function playerClass:draw()
+
+  graphicsHelpers.smallPrint()
+  love.graphics.setColor(colors.getRGB(self.character:getColor()))
+
   if self.debug then
     -- the name of the character
     local x, y = self.vehicle:position()

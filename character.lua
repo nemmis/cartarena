@@ -16,6 +16,7 @@ local characterClass = {}
 
 ---------------------------------
 -- Create a new character
+-- @color {r = ..., g = ..., b = ...}
 ---------------------------------
 function characterModule.newCharacter(name, color, gamepad)
   utils.assertTypeString(name)

@@ -3,13 +3,13 @@
 Kill players when colliding with them
 Bounce on map elements
 A bullet has an owner. The owner changes when a bullet is picked up.
-One use case of the owner is to find out who has shot a bullet.
+One use case of the owner is to find out who has shot a bullet (in order to update the score for example).
 
 ]]
 
 
 local geometry = require 'geometryLib'
-local color = require 'color'
+local colors = require 'color'
 local trajectoryModule = require 'trajectory'
 local timerModule = require 'timer'
 local collisionHelpers = require 'collisionHelpers'
@@ -238,11 +238,11 @@ end
 function bulletClass:draw()
   assert(self.state ~= BULLET_PICKED, "Should not attempt to draw a bullet that is picked")
 
-  local r,g,b = color.ORANGE()
+  local color = self.owner:getColor()
   if self.state == BULLET_STOPPED then
-    r, g, b = color.GREEN()
+    color = colors.getColor(colors.GREEN())
   end
-  love.graphics.setColor(r, g, b)
+  love.graphics.setColor(colors.getRGB(color))
 
   self.collisionShape:draw()
 

@@ -66,8 +66,15 @@ local function switchToScoreGameState(self)
 end
 
 function roundGameStateClass:gamepadpressed(joystick, button)
+  local round = self.gameStateMetadata.round
+
+  -- enable the debug mode when start is pressed on any controller
+  if button == 'start' then
+    round:setDebug(not round:getDebug())
+  end
+  
   -- forward input to the running round
-  self.gameStateMetadata.round:gamepadpressed(joystick, button)
+  round:gamepadpressed(joystick, button)
 end
 
 function roundGameStateClass:update(dt)
@@ -80,6 +87,5 @@ end
 function roundGameStateClass:draw()
   self.gameStateMetadata.round:draw()
 end
-
 
 return roundGameStateModule

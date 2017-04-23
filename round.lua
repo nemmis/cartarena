@@ -188,6 +188,10 @@ function roundClass:setDebug(debug)
   self.bulletRegistry:setDebug(debug)
 end
 
+function roundClass:getDebug()
+  return self.debug
+end
+
 function roundClass:gamepadpressed(gamepad, button)
   -- only forward input events to players when the countdown animation is finished
   if self.countdownAnimation:roundCanStart() then

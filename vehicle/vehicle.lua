@@ -403,7 +403,9 @@ function vehiclePrototype:draw()
 
   -- draw player
   love.graphics.setColor(colorModule.getRGB(self.color))
-  if self:isOutOfService() then love.graphics.setColor(colorModule.GREY(125)) end
+  if self:isOutOfService() then
+    love.graphics.setColor(colorModule.GREY(125))
+  end
 
   -- bounding shape
   self.bbCollision:draw()
@@ -415,8 +417,7 @@ function vehiclePrototype:draw()
   -- number of bullets
   love.graphics.print(self:getBulletCount(), self.x + 15, self.y + 15)
 
-  if self.debug
-  then
+  if self.debug then
     -- position
     love.graphics.setColor(colorModule.WHITE())
     love.graphics.circle("line", self.x, self.y, 5)
